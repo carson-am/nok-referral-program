@@ -2,10 +2,22 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+function NokLogo() {
+  return (
+    <div className="flex flex-col items-start">
+      <span className="text-5xl font-bold tracking-tight text-white md:text-6xl">nok</span>
+      <span className="text-sm font-bold tracking-wide text-[#E8863A] md:text-base">
+        RECOMMERCE
+      </span>
+    </div>
+  );
+}
 
 export default function SignInPage() {
   const router = useRouter();
@@ -17,51 +29,68 @@ export default function SignInPage() {
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl items-center px-6 py-12">
         <div className="grid w-full gap-10 md:grid-cols-2 md:gap-16">
-          <div className="space-y-5">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-white/[0.03] px-3 py-1 text-xs text-muted-foreground">
-              <span className="font-semibold tracking-wide text-foreground">nok</span>
-              <span className="h-3 w-px bg-border/70" />
-              Referral Partner Tool
+          <div className="space-y-6">
+            <NokLogo />
+            <div className="space-y-4">
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+                Grow together. Shape the future of recommerce.
+              </h1>
+              <p className="max-w-xl text-base leading-7 text-muted-foreground">
+                Join the leader in reverse supply chain solutions. Refer brands, track your progress,
+                and unlock mutual growth.
+              </p>
             </div>
-            <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-              Refer partners. Track outcomes. Keep it simple.
-            </h1>
-            <p className="max-w-xl text-base leading-7 text-muted-foreground">
-              A premium, modern portal for Nok referral partners — designed with plenty of whitespace,
-              subtle depth, and Nok-blue interactions.
-            </p>
           </div>
 
-          <Card className="bg-card/80 backdrop-blur">
-            <CardHeader>
-              <CardTitle>Welcome back</CardTitle>
-              <CardDescription>
-                Mock authentication for now — your button click takes you straight to the dashboard.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                className="w-full"
-                onClick={() => router.push("/dashboard")}
-              >
-                Sign In
-                <ArrowRight />
-              </Button>
-              <Button
-                className="w-full"
-                variant="outline"
-                onClick={() => router.push("/dashboard")}
-              >
-                Sign Up
-              </Button>
-              <p className="pt-2 text-center text-sm text-muted-foreground">
-                Prefer the full sign-up form?{" "}
-                <Link className="text-primary hover:underline" href="/sign-up">
-                  Create an account
-                </Link>
-              </p>
-            </CardContent>
-          </Card>
+          <div className="flex items-center justify-center">
+            <Card className="w-full max-w-md bg-card/80 backdrop-blur shadow-[0_0_40px_rgba(45,107,255,0.15)]">
+              <CardHeader>
+                <CardTitle>Welcome!</CardTitle>
+                <CardDescription>
+                  Provide your credentials to access the Nok Referral Partner dashboard
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    router.push("/dashboard");
+                  }}
+                  className="space-y-4"
+                >
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@company.com"
+                      autoComplete="email"
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    Sign In
+                  </Button>
+                </form>
+                <p className="pt-2 text-center text-sm text-muted-foreground">
+                  First time here?{" "}
+                  <Link className="text-primary hover:underline" href="/sign-up">
+                    Create an account
+                  </Link>
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
