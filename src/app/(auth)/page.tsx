@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 
 function NokLogo() {
   return (
-    <div className="flex flex-col items-start">
+    <div className="flex flex-col items-center">
       <span className="text-5xl font-bold tracking-tight text-white md:text-6xl">nok</span>
       <span className="text-sm font-bold tracking-wide text-[#E8863A] md:text-base">
         RECOMMERCE
@@ -29,9 +29,9 @@ export default function SignInPage() {
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl items-center px-6 py-12">
         <div className="grid w-full gap-10 md:grid-cols-2 md:gap-16">
-          <div className="space-y-6">
+          <div className="flex flex-col items-center space-y-6">
             <NokLogo />
-            <div className="space-y-4">
+            <div className="space-y-4 text-center">
               <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
                 Grow together. Shape the future of recommerce.
               </h1>
@@ -47,7 +47,7 @@ export default function SignInPage() {
               <CardHeader>
                 <CardTitle>Welcome!</CardTitle>
                 <CardDescription>
-                  Provide your credentials to access the Nok Referral Partner dashboard
+                  Provide your credentials to access the Nok Referral Partner dashboard.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -63,7 +63,6 @@ export default function SignInPage() {
                     <Input
                       id="email"
                       type="email"
-                      placeholder="you@company.com"
                       autoComplete="email"
                       required
                     />
@@ -73,7 +72,6 @@ export default function SignInPage() {
                     <Input
                       id="password"
                       type="password"
-                      placeholder="••••••••"
                       autoComplete="current-password"
                       required
                     />
