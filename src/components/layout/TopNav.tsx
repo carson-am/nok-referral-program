@@ -14,20 +14,37 @@ const TITLES: Record<string, string> = {
   "/dashboard/refer": "Refer a Partner",
 };
 
+function NokLogoCompact() {
+  return (
+    <Link
+      href="/dashboard/current-partners"
+      className="flex flex-col items-start justify-center transition-opacity hover:opacity-90"
+    >
+      <span className="text-xl font-bold tracking-tight text-white md:text-2xl">nok</span>
+      <span className="text-[10px] font-bold tracking-wide text-[#E8863A] md:text-xs">
+        RECOMMERCE
+      </span>
+    </Link>
+  );
+}
+
 export function TopNav() {
   const pathname = usePathname();
   const title = TITLES[pathname] ?? "Dashboard";
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 h-16 border-b border-border/70 bg-background/40 backdrop-blur supports-[backdrop-filter]:bg-background/30 md:pl-[260px]">
-      <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between px-6">
-        <div className="min-w-0">
-          <div className="truncate text-sm font-medium text-muted-foreground md:hidden">
-            nok Referral Partners
+      <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-4 px-6">
+        <div className="flex min-w-0 items-center gap-6">
+          <NokLogoCompact />
+          <div className="hidden min-w-0 border-l border-border/70 pl-6 md:block">
+            <h2 className="truncate text-lg font-semibold tracking-tight text-foreground">
+              {title}
+            </h2>
           </div>
-          <h2 className="truncate text-lg font-semibold tracking-tight text-foreground">
+          <div className="truncate text-sm font-medium text-muted-foreground md:hidden">
             {title}
-          </h2>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">

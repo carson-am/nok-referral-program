@@ -44,10 +44,10 @@ export default function SignInPage() {
 
           <div className="flex items-center justify-center">
             <Card className="w-full max-w-md bg-card/80 backdrop-blur shadow-[0_0_40px_rgba(45,107,255,0.15)]">
-              <CardHeader>
+              <CardHeader className="text-center">
                 <CardTitle>Welcome!</CardTitle>
                 <CardDescription>
-                  Provide your credentials to access the Nok Referral Partner dashboard.
+                  Provide your credentials to access the dashboard.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

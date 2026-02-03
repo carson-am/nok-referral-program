@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HelpCircle, History, Megaphone, Users } from "lucide-react";
+import { HelpCircle, History, LogOut, Megaphone, Users } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -35,16 +35,26 @@ export function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                 "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground",
                 isActive && "bg-white/[0.06] text-foreground shadow-sm",
               )}
             >
-              <Icon className={cn("h-4 w-4", isActive ? "text-primary" : "text-muted-foreground")} />
+              <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
               <span>{label}</span>
             </Link>
           );
         })}
+        <Link
+          href="/"
+          className={cn(
+            "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+            "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground",
+          )}
+        >
+          <LogOut className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <span>Sign Out</span>
+        </Link>
       </nav>
 
       <div className="px-5 py-4 text-xs text-muted-foreground">
