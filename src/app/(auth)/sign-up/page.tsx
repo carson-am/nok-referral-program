@@ -31,12 +31,11 @@ export default function SignUpPage() {
     <div className="relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(45,107,255,0.35),rgba(10,22,51,0)_55%)]" />
       <div className="relative mx-auto flex min-h-screen w-full max-w-3xl items-center px-6 py-12">
-        <Card className="w-full bg-card/80 backdrop-blur">
-          <CardHeader>
-            <CardTitle>Create your partner profile</CardTitle>
+        <Card className="w-full bg-card/80 backdrop-blur shadow-[0_0_40px_rgba(45,107,255,0.15)]">
+          <CardHeader className="text-center">
+            <CardTitle>Create Your Profile</CardTitle>
             <CardDescription>
-              Inspired by Capacity-style referral forms. This is a mock flow for now — submitting goes
-              straight to the dashboard.
+              Enter your details to get started with your account.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -48,45 +47,58 @@ export default function SignUpPage() {
               }}
             >
               <div className="grid gap-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input id="fullName" placeholder="Alex Morgan" autoComplete="name" required />
+                <Label htmlFor="fullName">
+                  Full Name <span className="text-destructive">*</span>
+                </Label>
+                <Input id="fullName" autoComplete="name" required />
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="email">Business Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="alex@company.com"
-                  autoComplete="email"
-                  required
-                />
+                <Label htmlFor="email">
+                  Business Email <span className="text-destructive">*</span>
+                </Label>
+                <Input id="email" type="email" autoComplete="email" required />
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="company">Company Name</Label>
-                <Input id="company" placeholder="Company, Inc." required />
+                <Label htmlFor="password">
+                  Password <span className="text-destructive">*</span>
+                </Label>
+                <Input id="password" type="password" autoComplete="new-password" required />
+                <p className="text-xs text-muted-foreground">Must be at least 8 characters</p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="confirmPassword">
+                  Confirm Password <span className="text-destructive">*</span>
+                </Label>
+                <Input id="confirmPassword" type="password" autoComplete="new-password" required />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="company">
+                  Company Name <span className="text-destructive">*</span>
+                </Label>
+                <Input id="company" required />
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="website">Website</Label>
-                <Input id="website" placeholder="https://company.com" inputMode="url" />
+                <Input id="website" type="url" inputMode="url" />
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="linkedin">LinkedIn Profile</Label>
-                <Input
-                  id="linkedin"
-                  placeholder="https://linkedin.com/in/yourname"
-                  inputMode="url"
-                />
+                <Input id="linkedin" type="url" inputMode="url" />
               </div>
 
               <div className="grid gap-2">
-                <Label>Industry</Label>
+                <Label>
+                  Industry <span className="text-destructive">*</span>
+                </Label>
                 <Select>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select an industry" />
+                    <SelectValue placeholder=" " />
                   </SelectTrigger>
                   <SelectContent>
                     {INDUSTRIES.map((industry) => (
@@ -113,4 +125,3 @@ export default function SignUpPage() {
     </div>
   );
 }
-
