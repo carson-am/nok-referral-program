@@ -18,6 +18,10 @@ import {
   HERO_STATS,
   MOCK_ACTIVE_REFERRALS,
   MOCK_CONVERTED_PARTNERS,
+  MOCK_PIPELINE_CONVERTED,
+  MOCK_PIPELINE_IN_CONVERSATION,
+  MOCK_PIPELINE_SUBMITTED,
+  MOCK_PIPELINE_UNDER_REVIEW,
   MOCK_TOTAL_REFERRALS,
   MOMENTUM_DATA,
   PIPELINE_COUNTS,
@@ -134,9 +138,11 @@ function getActivityDotColor(type: ActivityType): string {
 }
 
 type ModalKind = "total" | "active" | "converted" | null;
+type PipelineStageKey = "submitted" | "under_review" | "in_conversation" | "converted";
 
 export default function ReferralHistoryPage() {
   const [openModal, setOpenModal] = useState<ModalKind>(null);
+  const [pipelineModal, setPipelineModal] = useState<PipelineStageKey | null>(null);
   const totalReferrals = HERO_STATS.totalReferrals;
   const showEmptyState = totalReferrals === 0;
 
@@ -275,6 +281,30 @@ export default function ReferralHistoryPage() {
         title="Converted Partners"
         partners={MOCK_CONVERTED_PARTNERS}
       />
+      <PartnersModal
+        open={pipelineModal === "submitted"}
+        onOpenChange={(open) => !open && setPipelineModal(null)}
+        title="Partners: Submitted"
+        partners={MOCK_PIPELINE_SUBMITTED}
+      />
+      <PartnersModal
+        open={pipelineModal === "under_review"}
+        onOpenChange={(open) => !open && setPipelineModal(null)}
+        title="Partners: Under Review"
+        partners={MOCK_PIPELINE_UNDER_REVIEW}
+      />
+      <PartnersModal
+        open={pipelineModal === "in_conversation"}
+        onOpenChange={(open) => !open && setPipelineModal(null)}
+        title="Partners: In Conversation"
+        partners={MOCK_PIPELINE_IN_CONVERSATION}
+      />
+      <PartnersModal
+        open={pipelineModal === "converted"}
+        onOpenChange={(open) => !open && setPipelineModal(null)}
+        title="Partners: Converted"
+        partners={MOCK_PIPELINE_CONVERTED}
+      />
 
       {/* Pipeline */}
       <Card className="bg-card/50">
@@ -285,31 +315,42 @@ export default function ReferralHistoryPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
-                key: "submitted",
+                key: "submitted" as PipelineStageKey,
                 label: "Submitted",
                 count: PIPELINE_COUNTS.submitted,
                 barClass: "bg-muted-foreground/40",
               },
               {
-                key: "under_review",
+                key: "under_review" as PipelineStageKey,
                 label: "Under Review",
                 count: PIPELINE_COUNTS.underReview,
                 barClass: "bg-muted-foreground/60",
               },
               {
-                key: "in_conversation",
+                key: "in_conversation" as PipelineStageKey,
                 label: "In Conversation",
                 count: PIPELINE_COUNTS.inConversation,
                 barClass: "bg-primary",
               },
               {
-                key: "converted",
+                key: "converted" as PipelineStageKey,
                 label: "Converted",
                 count: PIPELINE_COUNTS.converted,
                 barClass: "bg-emerald-500",
               },
             ].map(({ key, label, count, barClass }) => (
-              <div key={key} className="space-y-2">
+              <button
+                key={key}
+                type="button"
+                className="w-full cursor-pointer space-y-2 rounded-xl border border-transparent p-3 text-left transition-colors hover:border-primary/50 hover:bg-white/[0.04]"
+                onClick={() => setPipelineModal(key)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setPipelineModal(key);
+                  }
+                }}
+              >
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-foreground">{label}</span>
                   <span className="text-muted-foreground">{count} Partners</span>
@@ -322,7 +363,7 @@ export default function ReferralHistoryPage() {
                     }}
                   />
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </CardContent>

@@ -132,3 +132,31 @@ export const MOCK_CONVERTED_PARTNERS: ReferralPartner[] = [
   { partnerName: "Slate Home Goods", dateReferred: new Date(now - ms(60)), industry: "Home Goods" },
   { partnerName: "Echo Brands", dateReferred: new Date(now - ms(55)), industry: "Apparel" },
 ];
+
+/** 3 partners at Submitted stage for pipeline drill-down. */
+export const MOCK_PIPELINE_SUBMITTED: ReferralPartner[] = [
+  { partnerName: "Slate Home Goods", dateReferred: new Date(now - ms(14)), industry: "Home Goods" },
+  { partnerName: "Lumen Beauty", dateReferred: new Date(now - ms(10)), industry: "Beauty" },
+  { partnerName: "North Star Retail", dateReferred: new Date(now - ms(5)), industry: "Retail" },
+];
+
+/** 2 partners at Under Review stage for pipeline drill-down. */
+export const MOCK_PIPELINE_UNDER_REVIEW: ReferralPartner[] = [
+  { partnerName: "Pulse Electronics", dateReferred: new Date(now - ms(45)), industry: "Consumer Electronics" },
+  { partnerName: "Summit Gear Co.", dateReferred: new Date(now - ms(28)), industry: "Outdoor" },
+];
+
+/** 2 partners at In Conversation stage for pipeline drill-down. */
+export const MOCK_PIPELINE_IN_CONVERSATION: ReferralPartner[] = [
+  { partnerName: "Aurora Apparel Co.", dateReferred: new Date(now - ms(95)), industry: "Apparel" },
+  { partnerName: "Verdant Living", dateReferred: new Date(now - ms(38)), industry: "Home Goods" },
+];
+
+/** 5 partners at Converted stage for pipeline drill-down. */
+export const MOCK_PIPELINE_CONVERTED: ReferralPartner[] = [
+  { partnerName: "Blue Ridge Outdoors", dateReferred: new Date(now - ms(120)), industry: "Outdoor" },
+  { partnerName: "Slate Home Goods", dateReferred: new Date(now - ms(60)), industry: "Home Goods" },
+  { partnerName: "Echo Brands", dateReferred: new Date(now - ms(55)), industry: "Apparel" },
+  { partnerName: "North Star Retail", dateReferred: new Date(now - ms(80)), industry: "Retail" },
+  { partnerName: "Glow Skincare", dateReferred: new Date(now - ms(25)), industry: "Beauty" },
+];
