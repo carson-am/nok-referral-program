@@ -20,8 +20,8 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-0 left-0 hidden w-[260px] flex-col border-r border-border/70 bg-card/40 backdrop-blur md:flex">
-      <div className="px-5 pt-5 pb-4">
+    <aside className="fixed inset-y-0 left-0 z-50 hidden w-[260px] flex-col border-r border-border/70 bg-card/80 md:flex">
+      <div className="px-5 pt-6 pb-4">
         <Link
           href="/dashboard/current-partners"
           className="flex flex-col items-start transition-opacity hover:opacity-90"
