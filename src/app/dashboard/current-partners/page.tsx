@@ -1,8 +1,24 @@
+"use client";
+
+import { useEffect } from "react";
+import { toast } from "sonner";
+
 import { PartnersTable } from "@/components/partners/PartnersTable";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MOCK_PARTNERS } from "@/lib/mock/partners";
 
+const REFERRAL_SUCCESS_KEY = "referralSuccess";
+
 export default function CurrentPartnersPage() {
+  useEffect(() => {
+    if (typeof sessionStorage === "undefined") return;
+    const flag = sessionStorage.getItem(REFERRAL_SUCCESS_KEY);
+    if (flag) {
+      toast.success("Your response has been recorded.");
+      sessionStorage.removeItem(REFERRAL_SUCCESS_KEY);
+    }
+  }, []);
+
   return (
     <div className="space-y-6">
       <div>
