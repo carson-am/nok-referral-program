@@ -16,12 +16,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   HAS_RECENT_CONVERSION,
   HERO_STATS,
+  MOCK_ACTIVE_REFERRALS,
+  MOCK_CONVERTED_PARTNERS,
+  MOCK_TOTAL_REFERRALS,
   MOMENTUM_DATA,
   PIPELINE_COUNTS,
   RECENT_ACTIVITY,
 } from "@/lib/mock/referral-history";
 import { formatRelativeTime } from "@/lib/utils/relative-time";
-import type { ActivityType } from "@/lib/mock/referral-history";
+import type { ActivityType, ReferralPartner } from "@/lib/mock/referral-history";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const CONFETTI_STORAGE_KEY = "referralHistoryConfettiShown";
 const DURATION_MS = 800;
@@ -54,6 +63,61 @@ function useCountUp(target: number, enabled: boolean): number {
   return value;
 }
 
+function formatDateReferred(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function PartnersModal({
+  open,
+  onOpenChange,
+  title,
+  partners,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  partners: ReferralPartner[];
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent showClose className="max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="overflow-auto rounded-xl border border-border/80">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border/80 bg-muted/30">
+                <th className="px-4 py-3 text-left font-medium text-foreground">Partner Name</th>
+                <th className="px-4 py-3 text-left font-medium text-foreground">Date Referred</th>
+                <th className="px-4 py-3 text-left font-medium text-foreground">Industry</th>
+              </tr>
+            </thead>
+            <tbody>
+              {partners.map((p, i) => (
+                <tr
+                  key={`${p.partnerName}-${i}`}
+                  className="border-b border-border/60 last:border-0"
+                >
+                  <td className="px-4 py-3 text-foreground">{p.partnerName}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {formatDateReferred(p.dateReferred)}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{p.industry}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function getActivityDotColor(type: ActivityType): string {
   switch (type) {
     case "submitted":
@@ -69,7 +133,10 @@ function getActivityDotColor(type: ActivityType): string {
   }
 }
 
+type ModalKind = "total" | "active" | "converted" | null;
+
 export default function ReferralHistoryPage() {
+  const [openModal, setOpenModal] = useState<ModalKind>(null);
   const totalReferrals = HERO_STATS.totalReferrals;
   const showEmptyState = totalReferrals === 0;
 
@@ -124,7 +191,13 @@ export default function ReferralHistoryPage() {
 
       {/* Hero stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-card/50 transition-shadow hover:-translate-y-0.5 hover:shadow-lg">
+        <Card
+          role="button"
+          tabIndex={0}
+          className="bg-card/50 cursor-pointer transition-shadow hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg"
+          onClick={() => setOpenModal("total")}
+          onKeyDown={(e) => e.key === "Enter" && setOpenModal("total")}
+        >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <span className="text-sm font-medium text-muted-foreground">Total Referrals</span>
             <Users className="size-4 text-muted-foreground" />
@@ -137,7 +210,13 @@ export default function ReferralHistoryPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-card/50 transition-shadow hover:-translate-y-0.5 hover:shadow-lg">
+        <Card
+          role="button"
+          tabIndex={0}
+          className="bg-card/50 cursor-pointer transition-shadow hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg"
+          onClick={() => setOpenModal("active")}
+          onKeyDown={(e) => e.key === "Enter" && setOpenModal("active")}
+        >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <span className="text-sm font-medium text-muted-foreground">Active Referrals</span>
             <Activity className="size-4 animate-pulse text-muted-foreground" />
@@ -148,7 +227,13 @@ export default function ReferralHistoryPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-card/50 transition-shadow hover:-translate-y-0.5 hover:shadow-lg">
+        <Card
+          role="button"
+          tabIndex={0}
+          className="bg-card/50 cursor-pointer transition-shadow hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg"
+          onClick={() => setOpenModal("converted")}
+          onKeyDown={(e) => e.key === "Enter" && setOpenModal("converted")}
+        >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <span className="text-sm font-medium text-muted-foreground">Converted Partners</span>
             <CheckCircle2 className="size-4 text-emerald-400" />
@@ -165,11 +250,31 @@ export default function ReferralHistoryPage() {
             <DollarSign className="size-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <span className="text-2xl font-bold tracking-tight">{HERO_STATS.potentialRewards}</span>
-            <p className="mt-1 text-xs text-muted-foreground">Estimated value or points.</p>
+            <span className="text-2xl font-bold tracking-tight">${HERO_STATS.potentialRewards}</span>
+            <p className="mt-1 text-xs text-muted-foreground">Estimated payout value.</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Drill-down modals */}
+      <PartnersModal
+        open={openModal === "total"}
+        onOpenChange={(open) => !open && setOpenModal(null)}
+        title="Total Referrals"
+        partners={MOCK_TOTAL_REFERRALS}
+      />
+      <PartnersModal
+        open={openModal === "active"}
+        onOpenChange={(open) => !open && setOpenModal(null)}
+        title="Active Referrals"
+        partners={MOCK_ACTIVE_REFERRALS}
+      />
+      <PartnersModal
+        open={openModal === "converted"}
+        onOpenChange={(open) => !open && setOpenModal(null)}
+        title="Converted Partners"
+        partners={MOCK_CONVERTED_PARTNERS}
+      />
 
       {/* Pipeline */}
       <Card className="bg-card/50">
