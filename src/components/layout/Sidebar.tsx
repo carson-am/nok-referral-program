@@ -13,21 +13,27 @@ const NAV_ITEMS = [
   { href: "/dashboard/program-faq", label: "Program FAQ", icon: HelpCircle },
 ] as const;
 
+const linkBase =
+  "flex w-full items-center gap-3 rounded-xl px-5 py-2 text-sm font-medium transition-colors text-muted-foreground hover:bg-white/[0.04] hover:text-foreground";
+
 export function Sidebar() {
   const pathname = usePathname();
 
   return (
     <aside className="fixed inset-y-0 left-0 hidden w-[260px] flex-col border-r border-border/70 bg-card/40 backdrop-blur md:flex">
-      <div className="flex h-16 items-center px-5">
-        <Link href="/dashboard/current-partners" className="flex items-baseline gap-2">
-          <span className="text-lg font-semibold tracking-tight text-foreground">nok</span>
-          <span className="text-xs font-medium tracking-wide text-muted-foreground">
-            Referral Partners
+      <div className="px-5 pt-5 pb-4">
+        <Link
+          href="/dashboard/current-partners"
+          className="flex flex-col items-start transition-opacity hover:opacity-90"
+        >
+          <span className="text-xl font-bold tracking-tight text-white">nok</span>
+          <span className="text-[10px] font-bold tracking-wide text-[#E8863A] md:text-xs">
+            RECOMMERCE
           </span>
         </Link>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1 px-0 py-4">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href;
           return (
@@ -35,8 +41,7 @@ export function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-                "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground",
+                linkBase,
                 isActive && "bg-white/[0.06] text-foreground shadow-sm",
               )}
             >
@@ -45,27 +50,23 @@ export function Sidebar() {
             </Link>
           );
         })}
-        <Link
-          href="/"
-          className={cn(
-            "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-            "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground",
-          )}
-        >
+      </nav>
+
+      <div className="space-y-1 px-0 pb-4">
+        <Link href="/" className={linkBase}>
           <LogOut className="h-4 w-4 shrink-0 text-muted-foreground" />
           <span>Sign Out</span>
         </Link>
-      </nav>
+      </div>
 
       <div className="px-5 py-4 text-xs text-muted-foreground">
         <div className="rounded-xl border border-border/70 bg-white/[0.02] p-3">
           <div className="font-medium text-foreground">Need help?</div>
           <div className="mt-1 leading-5">
-            Visit the Program FAQ or reach out to the Nok team for guidance.
+            Visit the Program FAQ.
           </div>
         </div>
       </div>
     </aside>
   );
 }
-
