@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   type ColumnDef,
   flexRender,
@@ -11,18 +11,12 @@ import {
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { AlertTriangle, ArrowDown, ArrowUp, MoreVertical } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp } from "lucide-react";
 
 import type { Partner, PartnerStatus } from "@/lib/mock/partners";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -31,6 +25,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+const CENTER_ALIGN_COLUMNS = new Set(["status", "industry", "date", "referredBy", "lastUpdated", "email"]);
 
 function statusVariant(status: PartnerStatus): "success" | "info" | "warning" | "muted" | "destructive" | "default" {
   switch (status) {
@@ -55,10 +51,12 @@ export function PartnersTable({
   data,
   duplicateNames,
   pageSize,
+  onSelectionChange,
 }: {
   data: Partner[];
   duplicateNames: Set<string>;
   pageSize: number;
+  onSelectionChange?: (selectedIds: string[]) => void;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
@@ -166,31 +164,6 @@ export function PartnersTable({
           );
         },
       },
-      {
-        id: "actions",
-        header: "",
-        cell: ({ row }) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 whitespace-nowrap"
-                aria-label="Open row actions"
-              >
-                <MoreVertical className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>View Details</DropdownMenuItem>
-              <DropdownMenuItem>Edit</DropdownMenuItem>
-              <DropdownMenuItem>Add Notes</DropdownMenuItem>
-              <DropdownMenuItem>View History</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ),
-        enableSorting: false,
-      },
     ],
     [duplicateNames],
   );
@@ -212,6 +185,11 @@ export function PartnersTable({
     autoResetPageIndex: true,
   });
 
+  useEffect(() => {
+    const ids = table.getSelectedRowModel().rows.map((r) => r.original.id);
+    onSelectionChange?.(ids);
+  }, [table, rowSelection, onSelectionChange]);
+
   const pageCount = table.getPageCount();
   const currentPage = table.getState().pagination.pageIndex;
 
@@ -225,9 +203,10 @@ export function PartnersTable({
                 {headerGroup.headers.map((header) => {
                   const canSort = header.column.getCanSort();
                   const sorted = header.column.getIsSorted();
+                  const isCenter = CENTER_ALIGN_COLUMNS.has(header.column.id);
                   return (
-                    <TableHead key={header.id} className="whitespace-nowrap">
-                      <div className="flex items-center gap-1 whitespace-nowrap">
+                    <TableHead key={header.id} className={isCenter ? "whitespace-nowrap text-center" : "whitespace-nowrap"}>
+                      <div className={`flex items-center gap-1 whitespace-nowrap ${isCenter ? "justify-center" : ""}`}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(header.column.columnDef.header, header.getContext())}
@@ -260,11 +239,20 @@ export function PartnersTable({
                 key={row.id}
                 className={`even:bg-muted/20 hover:bg-muted/30 focus-within:bg-muted/30 ${row.getIsSelected() ? "bg-primary/5" : ""}`}
               >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className="whitespace-nowrap">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+                {row.getVisibleCells().map((cell) => {
+                  const isCenter = CENTER_ALIGN_COLUMNS.has(cell.column.id);
+                  return (
+                    <TableCell key={cell.id} className={isCenter ? "whitespace-nowrap text-center" : "whitespace-nowrap"}>
+                      {isCenter ? (
+                        <div className="flex justify-center">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </div>
+                      ) : (
+                        flexRender(cell.column.columnDef.cell, cell.getContext())
+                      )}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             ))}
           </TableBody>

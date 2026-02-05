@@ -104,6 +104,7 @@ export default function CurrentPartnersPage() {
   const [industryFilter, setIndustryFilter] = useState("All");
   const [quarterFilter, setQuarterFilter] = useState("All");
   const [pageSize, setPageSize] = useState(20);
+  const [selectedPartnerIds, setSelectedPartnerIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   const duplicateNames = useMemo(() => getDuplicateNames(partners), [partners]);
@@ -166,6 +167,8 @@ export default function CurrentPartnersPage() {
   }, []);
 
   function handleExport() {
+    const toExport = filteredPartners.filter((p) => selectedPartnerIds.includes(p.id));
+    if (toExport.length === 0) return;
     const headers = [
       "Partner Name",
       "Status",
@@ -175,7 +178,7 @@ export default function CurrentPartnersPage() {
       "Last Updated",
       "Contact Email",
     ];
-    const rows = filteredPartners.map((p) => [
+    const rows = toExport.map((p) => [
       p.name,
       p.status,
       p.industry,
@@ -293,7 +296,14 @@ export default function CurrentPartnersPage() {
                 <SelectItem value="Q2 - 2026">Q2 2026</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm" onClick={handleExport} aria-label="Export to CSV">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+              disabled={selectedPartnerIds.length === 0}
+              aria-label="Export selected to CSV"
+              className="border-amber-500/60 text-amber-200 hover:bg-amber-500/10 hover:text-amber-100 disabled:opacity-50 disabled:pointer-events-none"
+            >
               <Download className="size-4" />
               <span className="ml-2">Export</span>
             </Button>
@@ -301,7 +311,7 @@ export default function CurrentPartnersPage() {
               value={String(pageSize)}
               onValueChange={(v) => setPageSize(Number(v))}
             >
-              <SelectTrigger className="w-[120px]" aria-label="Rows per page">
+              <SelectTrigger className="min-w-[140px] w-[140px]" aria-label="Rows per page">
                 <SelectValue placeholder="Rows" />
               </SelectTrigger>
               <SelectContent>
@@ -354,6 +364,7 @@ export default function CurrentPartnersPage() {
           data={filteredPartners}
           duplicateNames={duplicateNames}
           pageSize={pageSize}
+          onSelectionChange={setSelectedPartnerIds}
         />
       )}
     </div>
