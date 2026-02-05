@@ -37,13 +37,6 @@ export const MOCK_PARTNERS: Partner[] = [
   },
   {
     id: "p_004",
-    name: "Lumen Beauty",
-    status: "No Help Needed",
-    industry: "Beauty",
-    email: "team@lumenbeauty.com",
-  },
-  {
-    id: "p_005",
     name: "Pulse Electronics",
     status: "Help Needed",
     industry: "Consumer Electronics",
@@ -53,5 +46,24 @@ export const MOCK_PARTNERS: Partner[] = [
       category: "Introduction",
       reason: "Need intro to Sustainability VP",
     },
+  },
+  {
+    id: "p_005",
+    name: "Summit Supply Chain",
+    status: "Help Needed",
+    industry: "Logistics",
+    email: "partnerships@summitsupply.com",
+    helpDetails: {
+      contactName: "Sarah Johnson",
+      category: "Partnership Discussion",
+      reason: "Intro needed to Logistics Manager",
+    },
+  },
+  {
+    id: "p_006",
+    name: "Lumen Beauty",
+    status: "No Help Needed",
+    industry: "Beauty",
+    email: "team@lumenbeauty.com",
   },
 ];

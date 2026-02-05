@@ -8,6 +8,7 @@ import { Search } from "lucide-react";
 import { PartnersTable } from "@/components/partners/PartnersTable";
 import { Input } from "@/components/ui/input";
 import type { Partner } from "@/lib/mock/partners";
+import { MOCK_PARTNERS } from "@/lib/mock/partners";
 
 const REFERRAL_SUCCESS_KEY = "referralSuccess";
 
@@ -50,7 +51,6 @@ export default function CurrentPartnersPage() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof sessionStorage === "undefined") return;
@@ -81,10 +81,9 @@ export default function CurrentPartnersPage() {
         const jsonData = XLSX.utils.sheet_to_json(sheet);
         const parsedPartners = parseExcelData(jsonData);
         setPartners(parsedPartners);
-        setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load partner data");
-        toast.error("Failed to load partner data from Excel file");
+        console.warn("Excel file or 'Pipeline' sheet not found. Reverting to dummy data.");
+        setPartners(MOCK_PARTNERS);
       } finally {
         setLoading(false);
       }
@@ -125,8 +124,6 @@ export default function CurrentPartnersPage() {
 
         {loading ? (
           <div className="py-8 text-center text-sm text-muted-foreground">Loading partner data...</div>
-        ) : error ? (
-          <div className="py-8 text-center text-sm text-destructive">{error}</div>
         ) : (
           <PartnersTable data={filteredPartners} />
         )}
