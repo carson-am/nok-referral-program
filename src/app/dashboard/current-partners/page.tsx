@@ -13,38 +13,64 @@ import { MOCK_PARTNERS } from "@/lib/mock/partners";
 const REFERRAL_SUCCESS_KEY = "referralSuccess";
 
 function normalizeStatus(status: string): Partner["status"] {
-  const normalized = status.trim();
-  if (normalized === "Help Needed" || normalized === "Completed" || normalized === "No Help Needed") {
-    return normalized;
+  const normalized = status.trim().toLowerCase();
+  
+  if (normalized === "contract negotiation") {
+    return "Help Needed";
   }
+  
+  if (normalized === "closed") {
+    return "Completed";
+  }
+  
+  if (
+    normalized === "discovery" ||
+    normalized === "solicitation" ||
+    normalized === "qualification" ||
+    normalized === "n/a" ||
+    normalized === ""
+  ) {
+    return "No Help Needed";
+  }
+  
   return "No Help Needed";
 }
 
 function parseExcelData(data: unknown[]): Partner[] {
-  return data.map((row: any, index) => {
-    const partnerName = row["Partner Name"] || row["partner name"] || row["PartnerName"] || "";
-    const status = normalizeStatus(row["Status"] || row["status"] || "");
-    const industry = row["Industry"] || row["industry"] || "";
-    const email = row["Contact Email"] || row["contact email"] || row["ContactEmail"] || row["Email"] || row["email"] || "";
+  return data
+    .map((row: any, index) => {
+      const brand = row["Brand"] || "";
+      const brandTrimmed = String(brand).trim();
+      
+      if (!brandTrimmed) {
+        return null;
+      }
 
-    const partner: Partner = {
-      id: `p_${index + 1}`,
-      name: String(partnerName),
-      status,
-      industry: String(industry),
-      email: String(email),
-    };
+      const status = normalizeStatus(row["Status"] || "");
+      const dealType = row["Deal Type"] || "";
+      const emailRaw = row["Email"] || "";
+      const emailTrimmed = String(emailRaw).trim();
+      const email = emailTrimmed || "No email on file";
 
-    if (status === "Help Needed") {
-      partner.helpDetails = {
-        contactName: row["Contact Name"] || row["contact name"] || row["ContactName"] || undefined,
-        category: row["Category"] || row["category"] || undefined,
-        reason: row["Reason for Help"] || row["reason for help"] || row["ReasonForHelp"] || undefined,
+      const partner: Partner = {
+        id: `p_${index + 1}`,
+        name: brandTrimmed,
+        status,
+        industry: String(dealType),
+        email,
       };
-    }
 
-    return partner;
-  }).filter((p) => p.name);
+      if (status === "Help Needed") {
+        partner.helpDetails = {
+          contactName: row["Name"] || undefined,
+          category: row["Deal Type"] || undefined,
+          reason: row["Next Steps"] || undefined,
+        };
+      }
+
+      return partner;
+    })
+    .filter((p): p is Partner => p !== null && !!p.name);
 }
 
 export default function CurrentPartnersPage() {

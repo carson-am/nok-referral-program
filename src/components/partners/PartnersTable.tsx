@@ -80,14 +80,20 @@ export function PartnersTable({ data }: { data: Partner[] }) {
       {
         accessorKey: "email",
         header: "Contact Email",
-        cell: ({ row }) => (
-          <a
-            className="text-muted-foreground hover:text-foreground hover:underline"
-            href={`mailto:${row.original.email}`}
-          >
-            {row.original.email}
-          </a>
-        ),
+        cell: ({ row }) => {
+          const email = row.original.email;
+          if (email === "No email on file") {
+            return <span className="text-muted-foreground">{email}</span>;
+          }
+          return (
+            <a
+              className="text-muted-foreground hover:text-foreground hover:underline"
+              href={`mailto:${email}`}
+            >
+              {email}
+            </a>
+          );
+        },
       },
     ],
     [expandedRows],
