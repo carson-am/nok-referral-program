@@ -1,4 +1,4 @@
-export type PartnerStatus = "Active" | "Pending" | "Inactive";
+export type PartnerStatus = "Help Needed" | "Completed" | "No Help Needed";
 
 export type Partner = {
   id: string;
@@ -6,43 +6,52 @@ export type Partner = {
   status: PartnerStatus;
   industry: string;
   email: string;
+  helpDetails?: {
+    contactName?: string;
+    category?: string;
+    reason?: string;
+  };
 };
 
 export const MOCK_PARTNERS: Partner[] = [
   {
     id: "p_001",
     name: "Blue Ridge Outdoors",
-    status: "Active",
+    status: "Completed",
     industry: "Outdoor",
     email: "partners@blueridgeoutdoors.com",
   },
   {
     id: "p_002",
     name: "Aurora Apparel Co.",
-    status: "Pending",
+    status: "No Help Needed",
     industry: "Apparel",
     email: "hello@auroraapparel.co",
   },
   {
     id: "p_003",
     name: "Slate Home Goods",
-    status: "Active",
+    status: "Completed",
     industry: "Home Goods",
     email: "ops@slatehomegoods.com",
   },
   {
     id: "p_004",
     name: "Lumen Beauty",
-    status: "Inactive",
+    status: "No Help Needed",
     industry: "Beauty",
     email: "team@lumenbeauty.com",
   },
   {
     id: "p_005",
     name: "Pulse Electronics",
-    status: "Pending",
+    status: "Help Needed",
     industry: "Consumer Electronics",
     email: "contact@pulseelectronics.com",
+    helpDetails: {
+      contactName: "John Smith",
+      category: "Introduction",
+      reason: "Need intro to Sustainability VP",
+    },
   },
 ];
-
