@@ -7,7 +7,6 @@ import * as XLSX from "xlsx";
 import { Clock, Download, MessageSquare, Search, Users, Zap } from "lucide-react";
 
 import { PartnersTable } from "@/components/partners/PartnersTable";
-import { PartnerDetailSheet } from "@/components/partners/PartnerDetailSheet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -105,7 +104,6 @@ export default function CurrentPartnersPage() {
   const [industryFilter, setIndustryFilter] = useState("All");
   const [quarterFilter, setQuarterFilter] = useState("All");
   const [pageSize, setPageSize] = useState(20);
-  const [detailPartnerId, setDetailPartnerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const duplicateNames = useMemo(() => getDuplicateNames(partners), [partners]);
@@ -196,8 +194,6 @@ export default function CurrentPartnersPage() {
     URL.revokeObjectURL(url);
   }
 
-  const detailPartner = detailPartnerId ? partners.find((p) => p.id === detailPartnerId) ?? null : null;
-
   return (
     <div className="space-y-6">
       <div>
@@ -255,9 +251,9 @@ export default function CurrentPartnersPage() {
 
       {/* Control bar */}
       <div className="space-y-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative flex-1 max-w-md">
-            <span className="absolute left-3 top-1/2 flex size-4 -translate-y-1/2 items-center justify-center text-muted-foreground" aria-hidden>
+        <div className="flex flex-row flex-wrap items-center gap-4">
+          <div className="relative flex h-10 flex-1 min-w-[200px] max-w-md">
+            <span className="pointer-events-none absolute left-3 top-1/2 flex size-4 -translate-y-1/2 items-center justify-center text-muted-foreground" aria-hidden>
               <Search className="size-4" />
             </span>
             <Input
@@ -265,12 +261,9 @@ export default function CurrentPartnersPage() {
               placeholder="Search by partner name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9"
+              className="h-full w-full pl-9"
               aria-label="Search partners by name"
             />
-            <p className="mt-1.5 text-xs text-muted-foreground">
-              Check for duplicates before adding.
-            </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Select value={industryFilter} onValueChange={setIndustryFilter}>
@@ -361,15 +354,8 @@ export default function CurrentPartnersPage() {
           data={filteredPartners}
           duplicateNames={duplicateNames}
           pageSize={pageSize}
-          onOpenDetail={setDetailPartnerId}
         />
       )}
-
-      <PartnerDetailSheet
-        partner={detailPartner}
-        open={!!detailPartnerId}
-        onOpenChange={(open) => !open && setDetailPartnerId(null)}
-      />
     </div>
   );
 }

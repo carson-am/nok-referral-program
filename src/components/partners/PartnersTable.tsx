@@ -55,12 +55,10 @@ export function PartnersTable({
   data,
   duplicateNames,
   pageSize,
-  onOpenDetail,
 }: {
   data: Partner[];
   duplicateNames: Set<string>;
   pageSize: number;
-  onOpenDetail: (id: string) => void;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
@@ -96,32 +94,17 @@ export function PartnersTable({
           const partner = row.original;
           const isDuplicate = duplicateNames.has(partner.name.toLowerCase().trim());
           return (
-            <div className="flex items-center gap-2">
-              <div
-                className="size-8 shrink-0 rounded-full bg-muted"
-                aria-hidden
-              />
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenDetail(partner.id);
-                  }}
-                  className="font-medium text-foreground hover:underline focus:outline-none focus:ring-2 focus:ring-ring/70 rounded"
+            <div className="flex items-center gap-1.5 whitespace-nowrap">
+              <span className="font-medium text-foreground">{partner.name}</span>
+              {isDuplicate && (
+                <span
+                  className="text-amber-500 shrink-0"
+                  title="Duplicate brand name"
+                  aria-description="Duplicate brand name"
                 >
-                  {partner.name}
-                </button>
-                {isDuplicate && (
-                  <span
-                    className="text-amber-500"
-                    title="Duplicate brand name"
-                    aria-description="Duplicate brand name"
-                  >
-                    <AlertTriangle className="size-4" />
-                  </span>
-                )}
-              </div>
+                  <AlertTriangle className="size-4" />
+                </span>
+              )}
             </div>
           );
         },
@@ -130,35 +113,37 @@ export function PartnersTable({
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => (
-          <Badge variant={statusVariant(row.original.status)}>{row.original.status}</Badge>
+          <span className="whitespace-nowrap">
+            <Badge variant={statusVariant(row.original.status)}>{row.original.status}</Badge>
+          </span>
         ),
       },
       {
         accessorKey: "industry",
         header: "Industry",
         cell: ({ row }) => (
-          <span className="text-muted-foreground">{row.original.industry || "—"}</span>
+          <span className="whitespace-nowrap text-muted-foreground">{row.original.industry || "—"}</span>
         ),
       },
       {
         accessorKey: "date",
         header: "Referred On",
         cell: ({ row }) => (
-          <span className="text-muted-foreground">{row.original.date || "—"}</span>
+          <span className="whitespace-nowrap text-muted-foreground">{row.original.date || "—"}</span>
         ),
       },
       {
         accessorKey: "referredBy",
         header: "Referred By",
         cell: ({ row }) => (
-          <span className="text-muted-foreground">{row.original.referredBy || "—"}</span>
+          <span className="whitespace-nowrap text-muted-foreground">{row.original.referredBy || "—"}</span>
         ),
       },
       {
         accessorKey: "lastUpdated",
         header: "Last Updated",
         cell: ({ row }) => (
-          <span className="text-muted-foreground">{row.original.lastUpdated || "—"}</span>
+          <span className="whitespace-nowrap text-muted-foreground">{row.original.lastUpdated || "—"}</span>
         ),
       },
       {
@@ -168,20 +153,13 @@ export function PartnersTable({
           const email = row.original.email;
           if (!email || email === "Contact info pending") {
             return (
-              <button
-                type="button"
-                className="text-sm text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring/70 rounded"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Request Info
-              </button>
+              <span className="whitespace-nowrap text-sm text-primary">Request Info</span>
             );
           }
           return (
             <a
               href={`mailto:${email}`}
-              className="text-muted-foreground hover:text-foreground hover:underline focus:outline-none focus:ring-2 focus:ring-ring/70 rounded"
-              onClick={(e) => e.stopPropagation()}
+              className="whitespace-nowrap text-muted-foreground hover:text-foreground hover:underline focus:outline-none focus:ring-2 focus:ring-ring/70 rounded"
             >
               {email}
             </a>
@@ -191,36 +169,30 @@ export function PartnersTable({
       {
         id: "actions",
         header: "",
-        cell: ({ row }) => {
-          const partner = row.original;
-          return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-8"
-                  onClick={(e) => e.stopPropagation()}
-                  aria-label="Open row actions"
-                >
-                  <MoreVertical className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuItem onClick={() => onOpenDetail(partner.id)}>
-                  View Details
-                </DropdownMenuItem>
-                <DropdownMenuItem>Edit</DropdownMenuItem>
-                <DropdownMenuItem>Add Notes</DropdownMenuItem>
-                <DropdownMenuItem>View History</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          );
-        },
+        cell: ({ row }) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 whitespace-nowrap"
+                aria-label="Open row actions"
+              >
+                <MoreVertical className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>View Details</DropdownMenuItem>
+              <DropdownMenuItem>Edit</DropdownMenuItem>
+              <DropdownMenuItem>Add Notes</DropdownMenuItem>
+              <DropdownMenuItem>View History</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
         enableSorting: false,
       },
     ],
-    [duplicateNames, onOpenDetail],
+    [duplicateNames],
   );
 
   const table = useReactTable({
@@ -237,16 +209,16 @@ export function PartnersTable({
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     manualPagination: false,
+    autoResetPageIndex: true,
   });
 
-  const sortedColumns = table.getHeaderGroups().flatMap((g) => g.headers);
   const pageCount = table.getPageCount();
   const currentPage = table.getState().pagination.pageIndex;
 
   return (
-    <div className="space-y-4">
-      <div className="max-h-[calc(100vh-380px)] overflow-auto rounded-xl border border-border/70 bg-card/50">
-        <Table>
+    <div className="space-y-4 w-full">
+      <div className="w-full max-h-[calc(100vh-380px)] overflow-x-auto overflow-y-auto rounded-xl border border-border/70 bg-card/50">
+        <Table className="w-full min-w-max">
           <TableHeader className="sticky top-0 z-10 bg-card/95 backdrop-blur">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
@@ -254,8 +226,8 @@ export function PartnersTable({
                   const canSort = header.column.getCanSort();
                   const sorted = header.column.getIsSorted();
                   return (
-                    <TableHead key={header.id}>
-                      <div className="flex items-center gap-1">
+                    <TableHead key={header.id} className="whitespace-nowrap">
+                      <div className="flex items-center gap-1 whitespace-nowrap">
                         {header.isPlaceholder
                           ? null
                           : flexRender(header.column.columnDef.header, header.getContext())}
@@ -283,14 +255,13 @@ export function PartnersTable({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows.map((row, index) => (
+            {table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
-                className={`cursor-pointer even:bg-muted/20 hover:bg-muted/30 focus-within:bg-muted/30 ${row.getIsSelected() ? "bg-primary/5" : ""}`}
-                onClick={() => onOpenDetail(row.original.id)}
+                className={`even:bg-muted/20 hover:bg-muted/30 focus-within:bg-muted/30 ${row.getIsSelected() ? "bg-primary/5" : ""}`}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} onClick={(e) => cell.column.id === "actions" && e.stopPropagation()}>
+                  <TableCell key={cell.id} className="whitespace-nowrap">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
