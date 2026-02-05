@@ -78,11 +78,18 @@ export function PartnersTable({ data }: { data: Partner[] }) {
         cell: ({ row }) => <span className="text-muted-foreground">{row.original.industry}</span>,
       },
       {
+        accessorKey: "date",
+        header: "Date",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{row.original.date || ""}</span>
+        ),
+      },
+      {
         accessorKey: "email",
         header: "Contact Email",
         cell: ({ row }) => {
           const email = row.original.email;
-          if (email === "No email on file") {
+          if (email === "Contact info pending") {
             return <span className="text-muted-foreground">{email}</span>;
           }
           return (

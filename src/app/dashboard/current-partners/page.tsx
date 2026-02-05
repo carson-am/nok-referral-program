@@ -19,10 +19,6 @@ function normalizeStatus(status: string): Partner["status"] {
     return "Help Needed";
   }
   
-  if (normalized === "closed") {
-    return "Completed";
-  }
-  
   if (
     normalized === "discovery" ||
     normalized === "solicitation" ||
@@ -50,7 +46,8 @@ function parseExcelData(data: unknown[]): Partner[] {
       const dealType = row["Deal Type"] || "";
       const emailRaw = row["Email"] || "";
       const emailTrimmed = String(emailRaw).trim();
-      const email = emailTrimmed || "No email on file";
+      const email = emailTrimmed || "Contact info pending";
+      const estimatedCloseDate = row["Estimated Close Date"] || "";
 
       const partner: Partner = {
         id: `p_${index + 1}`,
@@ -59,6 +56,10 @@ function parseExcelData(data: unknown[]): Partner[] {
         industry: String(dealType),
         email,
       };
+
+      if (estimatedCloseDate) {
+        partner.date = String(estimatedCloseDate);
+      }
 
       if (status === "Help Needed") {
         partner.helpDetails = {
@@ -91,24 +92,23 @@ export default function CurrentPartnersPage() {
     async function loadExcelData() {
       try {
         setLoading(true);
-        const response = await fetch("/sales-pipeline.xlsx");
+        const response = await fetch("/pipeline.xlsx");
         if (!response.ok) {
           throw new Error("Failed to fetch Excel file");
         }
         const arrayBuffer = await response.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: "array" });
 
-        const pipelineSheetName = workbook.SheetNames.find((name) => name === "Pipeline");
-        if (!pipelineSheetName) {
-          throw new Error('Sheet "Pipeline" not found');
+        if (workbook.SheetNames.length === 0) {
+          throw new Error("No sheets found in workbook");
         }
 
-        const sheet = workbook.Sheets[pipelineSheetName];
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(sheet);
         const parsedPartners = parseExcelData(jsonData);
         setPartners(parsedPartners);
       } catch (err) {
-        console.warn("Excel file or 'Pipeline' sheet not found. Reverting to dummy data.");
+        console.warn("Excel file or sheet not found. Reverting to dummy data.", err);
         setPartners(MOCK_PARTNERS);
       } finally {
         setLoading(false);

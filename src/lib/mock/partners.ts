@@ -6,6 +6,7 @@ export type Partner = {
   status: PartnerStatus;
   industry: string;
   email: string;
+  date?: string;
   helpDetails?: {
     contactName?: string;
     category?: string;
