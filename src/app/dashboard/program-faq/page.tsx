@@ -33,7 +33,7 @@ export default function ProgramFaqPage() {
             <AccordionItem value="general-2">
               <AccordionTrigger>What happens after I submit a lead?</AccordionTrigger>
               <AccordionContent>
-                Our partnership team reviews the submission within 24–48 hours. If it&apos;s a fit, we&apos;ll reach out to the contact. You can track the real-time status of the lead in your &quot;Referral History&quot; tab.
+                Our partnership team reviews the submission within 24–48 hours. If it&apos;s a fit, we&apos;ll reach out to the contact. You can track the real-time status of the lead in your &quot;Personal Dashboard&quot; tab.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="general-3">
@@ -111,7 +111,7 @@ export default function ProgramFaqPage() {
             <AccordionItem value="rewards-4">
               <AccordionTrigger>Where can I view my lifetime earnings and upcoming payouts?</AccordionTrigger>
               <AccordionContent>
-                You can view a high-level summary in the &quot;Referral History&quot; tab. Detailed financial reporting can be found in the &quot;Marketing Materials&quot; section.
+                You can view a high-level summary in the &quot;Personal Dashboard&quot; tab. Detailed financial reporting can be found in the &quot;Marketing Materials&quot; section.
               </AccordionContent>
             </AccordionItem>
           </Accordion>

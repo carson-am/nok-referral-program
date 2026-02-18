@@ -7,8 +7,8 @@ import { HelpCircle, History, LogOut, Megaphone, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/dashboard/current-partners", label: "Current Partners", icon: Users },
-  { href: "/dashboard/referral-history", label: "Referral History", icon: History },
+  { href: "/dashboard/current-partners", label: "Nok Pipeline", icon: Users },
+  { href: "/dashboard/referral-history", label: "Personal Dashboard", icon: History },
   { href: "/dashboard/marketing-materials", label: "Marketing Materials", icon: Megaphone },
   { href: "/dashboard/program-faq", label: "Program FAQ", icon: HelpCircle },
 ] as const;

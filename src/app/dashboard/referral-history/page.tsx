@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import confetti from "canvas-confetti";
 import {
   Activity,
   CheckCircle2,
@@ -14,7 +13,6 @@ import { MomentumChart } from "@/components/referral-history/MomentumChart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  HAS_RECENT_CONVERSION,
   HERO_STATS,
   MOCK_ACTIVE_REFERRALS,
   MOCK_CONVERTED_PARTNERS,
@@ -36,7 +34,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const CONFETTI_STORAGE_KEY = "referralHistoryConfettiShown";
 const DURATION_MS = 800;
 
 function useCountUp(target: number, enabled: boolean): number {
@@ -150,19 +147,12 @@ export default function ReferralHistoryPage() {
   const activeDisplay = useCountUp(HERO_STATS.activeReferrals, !showEmptyState);
   const convertedDisplay = useCountUp(HERO_STATS.convertedPartners, !showEmptyState);
 
-  useEffect(() => {
-    if (!HAS_RECENT_CONVERSION || typeof sessionStorage === "undefined") return;
-    if (sessionStorage.getItem(CONFETTI_STORAGE_KEY)) return;
-    sessionStorage.setItem(CONFETTI_STORAGE_KEY, "1");
-    confetti({ particleCount: 80, spread: 60, origin: { y: 0.4 } });
-  }, []);
-
   if (showEmptyState) {
     return (
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Referral History
+            Personal Dashboard
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Track your referrals from submission to close — see status updates and key milestones.
@@ -188,7 +178,7 @@ export default function ReferralHistoryPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Referral History
+          Personal Dashboard
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Track your referrals from submission to close — see status updates and key milestones.

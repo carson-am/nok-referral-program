@@ -63,8 +63,7 @@ export default function ReferPartnerPage() {
           Refer a Partner
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Submit your referral and we&apos;ll take it from here. You&apos;ll be redirected back to
-          Current Partners while we review the details.
+          Submit your referral and we&apos;ll take it from here. You&apos;ll be redirected back to the Nok Pipeline while we review the details.
         </p>
       </div>
 

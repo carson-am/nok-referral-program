@@ -201,10 +201,10 @@ export default function CurrentPartnersPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Current Partners
+          Nok Pipeline
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          A shared directory of all partners and their current status in the pipeline.
+          A shared directory of the Nok pipeline and its current status.
         </p>
       </div>
 
