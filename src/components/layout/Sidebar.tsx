@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useClerk } from "@clerk/nextjs";
 import { HelpCircle, History, LogOut, Megaphone, Users } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ const linkBase =
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { signOut } = useClerk();
 
   return (
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-[260px] flex-col border-r border-border/70 bg-card/80 md:flex">
@@ -53,10 +55,15 @@ export function Sidebar() {
       </nav>
 
       <div className="space-y-1 px-0 pb-4">
-        <Link href="/" className={linkBase}>
+        <button
+          type="button"
+          onClick={() => signOut({ redirectUrl: "/" })}
+          className={linkBase}
+          aria-label="Sign out"
+        >
           <LogOut className="h-4 w-4 shrink-0 text-muted-foreground" />
           <span>Sign Out</span>
-        </Link>
+        </button>
       </div>
 
       <div className="px-5 py-4 text-xs text-muted-foreground">
