@@ -43,7 +43,7 @@ const signUpSchema = z
     password: z.string().min(8, "Must be at least 8 characters."),
     confirmPassword: z.string().min(1, "This field is required."),
     companyName: z.string().min(1, "This field is required."),
-    website: z.string().optional(),
+    website: z.string().min(1, "This field is required."),
     linkedin: z.string().optional(),
     industry: z
       .string()
@@ -186,7 +186,9 @@ export default function SignUpPage() {
                   name="website"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Website</FormLabel>
+                      <FormLabel>
+                        Website <span className="text-destructive">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input type="url" inputMode="url" {...field} />
                       </FormControl>
@@ -245,7 +247,7 @@ export default function SignUpPage() {
                     className="sm:w-auto"
                     disabled={form.formState.isSubmitting}
                   >
-                    {form.formState.isSubmitting ? "Creating account..." : "Create account"}
+                    {form.formState.isSubmitting ? "Creating Account..." : "Create Account"}
                   </Button>
                 </div>
               </form>

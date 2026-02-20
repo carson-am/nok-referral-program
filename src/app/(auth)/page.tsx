@@ -1,10 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -21,6 +30,12 @@ function NokLogo() {
 
 export default function SignInPage() {
   const router = useRouter();
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+
+  function handleSendResetLink() {
+    toast.success("Reset link sent!");
+    setForgotPasswordOpen(false);
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -76,6 +91,15 @@ export default function SignInPage() {
                       required
                     />
                   </div>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setForgotPasswordOpen(true)}
+                      className="text-sm text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring/70 rounded"
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
                   <Button type="submit" className="w-full">
                     Sign In
                   </Button>
@@ -91,6 +115,38 @@ export default function SignInPage() {
           </div>
         </div>
       </div>
+
+      <Dialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen}>
+        <DialogContent showClose className="rounded-xl">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Enter your email address and we&apos;ll send you a link to reset your password.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="grid gap-2">
+              <Label htmlFor="reset-email">Email</Label>
+              <Input
+                id="reset-email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+              />
+            </div>
+            <Button type="button" onClick={handleSendResetLink} className="w-full">
+              Send Reset Link
+            </Button>
+            <button
+              type="button"
+              onClick={() => setForgotPasswordOpen(false)}
+              className="text-sm text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring/70 rounded text-center"
+            >
+              Back to Sign In
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
