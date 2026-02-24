@@ -1,9 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/lib/supabase/client";
 
 const referSchema = z.object({
   fullName: z.string().min(1, "This field is required."),
@@ -44,12 +47,36 @@ const REFERRAL_SUCCESS_KEY = "referralSuccess";
 
 export default function ReferPartnerPage() {
   const router = useRouter();
+  const { userId } = useAuth();
   const form = useForm<ReferValues>({
     resolver: zodResolver(referSchema),
     defaultValues,
   });
 
-  function onSubmit() {
+  async function onSubmit(values: ReferValues) {
+    if (!userId) {
+      toast.error("You must be signed in to submit a referral.");
+      return;
+    }
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      toast.error("Database is not configured. Please try again later.");
+      return;
+    }
+    const { error } = await supabase.from("referrals").insert({
+      user_id: userId,
+      full_name: values.fullName.trim(),
+      job_title: values.jobTitle.trim(),
+      company_name: values.companyName.trim(),
+      company_website: values.companyWebsite.trim(),
+      email: values.email.trim(),
+      phone: values.phone.trim(),
+      relationship: values.relationship.trim(),
+      status: "submitted",
+    });
+    if (error) {
+      toast.error(error.message || "Failed to save referral. Please try again.");
+      return;
+    }
     if (typeof sessionStorage !== "undefined") {
       sessionStorage.setItem(REFERRAL_SUCCESS_KEY, "1");
     }
@@ -195,7 +222,9 @@ export default function ReferPartnerPage() {
                 <Button type="button" variant="outline" onClick={() => router.back()}>
                   Cancel
                 </Button>
-                <Button type="submit">Submit referral</Button>
+                <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? "Submitting..." : "Submit referral"}
+              </Button>
               </div>
             </form>
           </Form>

@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/select";
 import type { Partner, PartnerStatus } from "@/lib/mock/partners";
 import { MOCK_PARTNERS } from "@/lib/mock/partners";
+import { supabase } from "@/lib/supabase/client";
+import type { ReferralRow } from "@/lib/supabase/types";
 
 const REFERRAL_SUCCESS_KEY = "referralSuccess";
 const STATUS_CHIP_OPTIONS: { value: "All" | PartnerStatus; label: string }[] = [
@@ -37,6 +39,41 @@ function normalizeStatus(status: string): Partner["status"] {
   if (normalized === "qualification") return "Under Review";
   if (normalized === "contract negotiation") return "In Conversation";
   return "On Hold";
+}
+
+function referralStatusToPartnerStatus(status: ReferralRow["status"]): PartnerStatus {
+  switch (status) {
+    case "submitted":
+      return "Submitted";
+    case "under_review":
+      return "Under Review";
+    case "in_conversation":
+      return "In Conversation";
+    case "converted":
+      return "Active";
+    default:
+      return "Submitted";
+  }
+}
+
+function referralsToPartners(rows: ReferralRow[]): Partner[] {
+  return rows.map((row) => {
+    const d = row.created_at ? new Date(row.created_at) : new Date();
+    const month = d.getMonth() + 1;
+    const quarter = Math.ceil(month / 3);
+    const year = d.getFullYear();
+    const date = `Q${quarter} - ${year}`;
+    return {
+      id: row.id,
+      name: row.company_name ?? "—",
+      status: referralStatusToPartnerStatus(row.status),
+      industry: "—",
+      email: row.email ?? "",
+      date,
+      referredBy: "—",
+      lastUpdated: "—",
+    };
+  });
 }
 
 function parseExcelData(data: unknown[]): Partner[] {
@@ -157,8 +194,22 @@ export default function CurrentPartnersPage() {
         const jsonData = XLSX.utils.sheet_to_json(sheet);
         setPartners(parseExcelData(jsonData));
       } catch (err) {
-        console.warn("Excel file or sheet not found. Reverting to dummy data.", err);
-        setPartners(MOCK_PARTNERS);
+        console.warn("Excel file or sheet not found. Trying Supabase referrals.", err);
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        if (url && key) {
+          const { data, error } = await supabase
+            .from("referrals")
+            .select("*")
+            .order("created_at", { ascending: false });
+          if (!error && data?.length) {
+            setPartners(referralsToPartners(data as ReferralRow[]));
+          } else {
+            setPartners(MOCK_PARTNERS);
+          }
+        } else {
+          setPartners(MOCK_PARTNERS);
+        }
       } finally {
         setLoading(false);
       }

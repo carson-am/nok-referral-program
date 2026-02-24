@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
 import {
   Activity,
   CheckCircle2,
@@ -13,26 +14,22 @@ import { MomentumChart } from "@/components/referral-history/MomentumChart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  HERO_STATS,
-  MOCK_ACTIVE_REFERRALS,
-  MOCK_CONVERTED_PARTNERS,
-  MOCK_PIPELINE_CONVERTED,
-  MOCK_PIPELINE_IN_CONVERSATION,
-  MOCK_PIPELINE_SUBMITTED,
-  MOCK_PIPELINE_UNDER_REVIEW,
-  MOCK_TOTAL_REFERRALS,
-  MOMENTUM_DATA,
-  PIPELINE_COUNTS,
-  RECENT_ACTIVITY,
-} from "@/lib/mock/referral-history";
-import { formatRelativeTime } from "@/lib/utils/relative-time";
-import type { ActivityType, ReferralPartner } from "@/lib/mock/referral-history";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  deriveHeroStats,
+  deriveMomentumData,
+  derivePipelineCounts,
+  deriveRecentActivity,
+  getPartnersByStatus,
+} from "@/lib/referrals/derive-dashboard";
+import type { ActivityType, ReferralPartner } from "@/lib/mock/referral-history";
+import type { ReferralRow } from "@/lib/supabase/types";
+import { supabase } from "@/lib/supabase/client";
+import { formatRelativeTime } from "@/lib/utils/relative-time";
 
 const DURATION_MS = 800;
 
@@ -138,14 +135,77 @@ type ModalKind = "total" | "active" | "converted" | null;
 type PipelineStageKey = "submitted" | "under_review" | "in_conversation" | "converted";
 
 export default function ReferralHistoryPage() {
+  const { userId } = useAuth();
+  const [referrals, setReferrals] = useState<ReferralRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState<ModalKind>(null);
   const [pipelineModal, setPipelineModal] = useState<PipelineStageKey | null>(null);
-  const totalReferrals = HERO_STATS.totalReferrals;
-  const showEmptyState = totalReferrals === 0;
 
-  const totalDisplay = useCountUp(HERO_STATS.totalReferrals, !showEmptyState);
-  const activeDisplay = useCountUp(HERO_STATS.activeReferrals, !showEmptyState);
-  const convertedDisplay = useCountUp(HERO_STATS.convertedPartners, !showEmptyState);
+  useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      setLoading(false);
+      return;
+    }
+    (async () => {
+      const { data, error } = await supabase
+        .from("referrals")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+      if (!error) setReferrals((data as ReferralRow[]) ?? []);
+      setLoading(false);
+    })();
+  }, [userId]);
+
+  const heroStats = useMemo(() => deriveHeroStats(referrals), [referrals]);
+  const pipelineCounts = useMemo(() => derivePipelineCounts(referrals), [referrals]);
+  const momentumData = useMemo(() => deriveMomentumData(referrals), [referrals]);
+  const recentActivity = useMemo(() => deriveRecentActivity(referrals), [referrals]);
+  const totalReferrals = heroStats.totalReferrals;
+  const showEmptyState = !loading && totalReferrals === 0;
+
+  const totalDisplay = useCountUp(heroStats.totalReferrals, !showEmptyState);
+  const activeDisplay = useCountUp(heroStats.activeReferrals, !showEmptyState);
+  const convertedDisplay = useCountUp(heroStats.convertedPartners, !showEmptyState);
+
+  const partnersTotal = useMemo(() => getPartnersByStatus(referrals, "total"), [referrals]);
+  const partnersActive = useMemo(() => getPartnersByStatus(referrals, "active"), [referrals]);
+  const partnersConverted = useMemo(() => getPartnersByStatus(referrals, "converted"), [referrals]);
+  const partnersSubmitted = useMemo(() => getPartnersByStatus(referrals, "submitted"), [referrals]);
+  const partnersUnderReview = useMemo(
+    () => getPartnersByStatus(referrals, "under_review"),
+    [referrals]
+  );
+  const partnersInConversation = useMemo(
+    () => getPartnersByStatus(referrals, "in_conversation"),
+    [referrals]
+  );
+  const partnersConvertedPipeline = useMemo(
+    () => getPartnersByStatus(referrals, "converted"),
+    [referrals]
+  );
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            Personal Dashboard
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Track your referrals from submission to close — see status updates and key milestones.
+          </p>
+        </div>
+        <Card className="bg-card/50 flex flex-col items-center justify-center py-16">
+          <p className="text-muted-foreground">Loading your referrals...</p>
+        </Card>
+      </div>
+    );
+  }
 
   if (showEmptyState) {
     return (
@@ -169,10 +229,10 @@ export default function ReferralHistoryPage() {
   }
 
   const pipelineTotal =
-    PIPELINE_COUNTS.submitted +
-    PIPELINE_COUNTS.underReview +
-    PIPELINE_COUNTS.inConversation +
-    PIPELINE_COUNTS.converted;
+    pipelineCounts.submitted +
+    pipelineCounts.underReview +
+    pipelineCounts.inConversation +
+    pipelineCounts.converted;
 
   return (
     <div className="space-y-6">
@@ -201,7 +261,9 @@ export default function ReferralHistoryPage() {
           <CardContent>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold tracking-tight">{totalDisplay}</span>
-              <span className="text-xs font-medium text-emerald-400">{HERO_STATS.totalReferralsChange}</span>
+              {heroStats.totalReferralsChange && (
+                <span className="text-xs font-medium text-emerald-400">{heroStats.totalReferralsChange}</span>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -246,7 +308,7 @@ export default function ReferralHistoryPage() {
             <DollarSign className="size-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <span className="text-2xl font-bold tracking-tight">${HERO_STATS.potentialRewards}</span>
+            <span className="text-2xl font-bold tracking-tight">${heroStats.potentialRewards}</span>
             <p className="mt-1 text-xs text-muted-foreground">Estimated payout value.</p>
           </CardContent>
         </Card>
@@ -257,43 +319,43 @@ export default function ReferralHistoryPage() {
         open={openModal === "total"}
         onOpenChange={(open) => !open && setOpenModal(null)}
         title="Total Referrals"
-        partners={MOCK_TOTAL_REFERRALS}
+        partners={partnersTotal}
       />
       <PartnersModal
         open={openModal === "active"}
         onOpenChange={(open) => !open && setOpenModal(null)}
         title="Active Referrals"
-        partners={MOCK_ACTIVE_REFERRALS}
+        partners={partnersActive}
       />
       <PartnersModal
         open={openModal === "converted"}
         onOpenChange={(open) => !open && setOpenModal(null)}
         title="Converted Partners"
-        partners={MOCK_CONVERTED_PARTNERS}
+        partners={partnersConverted}
       />
       <PartnersModal
         open={pipelineModal === "submitted"}
         onOpenChange={(open) => !open && setPipelineModal(null)}
         title="Partners: Submitted"
-        partners={MOCK_PIPELINE_SUBMITTED}
+        partners={partnersSubmitted}
       />
       <PartnersModal
         open={pipelineModal === "under_review"}
         onOpenChange={(open) => !open && setPipelineModal(null)}
         title="Partners: Under Review"
-        partners={MOCK_PIPELINE_UNDER_REVIEW}
+        partners={partnersUnderReview}
       />
       <PartnersModal
         open={pipelineModal === "in_conversation"}
         onOpenChange={(open) => !open && setPipelineModal(null)}
         title="Partners: In Conversation"
-        partners={MOCK_PIPELINE_IN_CONVERSATION}
+        partners={partnersInConversation}
       />
       <PartnersModal
         open={pipelineModal === "converted"}
         onOpenChange={(open) => !open && setPipelineModal(null)}
         title="Partners: Converted"
-        partners={MOCK_PIPELINE_CONVERTED}
+        partners={partnersConvertedPipeline}
       />
 
       {/* Pipeline */}
@@ -307,25 +369,25 @@ export default function ReferralHistoryPage() {
               {
                 key: "submitted" as PipelineStageKey,
                 label: "Submitted",
-                count: PIPELINE_COUNTS.submitted,
+                count: pipelineCounts.submitted,
                 barClass: "bg-muted-foreground/40",
               },
               {
                 key: "under_review" as PipelineStageKey,
                 label: "Under Review",
-                count: PIPELINE_COUNTS.underReview,
+                count: pipelineCounts.underReview,
                 barClass: "bg-muted-foreground/60",
               },
               {
                 key: "in_conversation" as PipelineStageKey,
                 label: "In Conversation",
-                count: PIPELINE_COUNTS.inConversation,
+                count: pipelineCounts.inConversation,
                 barClass: "bg-primary",
               },
               {
                 key: "converted" as PipelineStageKey,
                 label: "Converted",
-                count: PIPELINE_COUNTS.converted,
+                count: pipelineCounts.converted,
                 barClass: "bg-emerald-500",
               },
             ].map(({ key, label, count, barClass }) => (
@@ -367,7 +429,7 @@ export default function ReferralHistoryPage() {
             <p className="text-sm text-muted-foreground">Last 6 months</p>
           </CardHeader>
           <CardContent>
-            <MomentumChart data={MOMENTUM_DATA} />
+            <MomentumChart data={momentumData} />
           </CardContent>
         </Card>
 
@@ -377,7 +439,7 @@ export default function ReferralHistoryPage() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-4">
-              {RECENT_ACTIVITY.map((item) => (
+              {recentActivity.map((item) => (
                 <li key={item.id} className="flex gap-3">
                   <span
                     className={`mt-1.5 size-2 shrink-0 rounded-full ${getActivityDotColor(item.type)}`}
