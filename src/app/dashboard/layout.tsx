@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 
 import { Sidebar } from "@/components/layout/Sidebar";
+
+export const dynamic = "force-dynamic";
 import { TopNav } from "@/components/layout/TopNav";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {

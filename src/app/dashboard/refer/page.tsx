@@ -58,7 +58,7 @@ export default function ReferPartnerPage() {
       toast.error("You must be signed in to submit a referral.");
       return;
     }
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    if (!supabase) {
       toast.error("Database is not configured. Please try again later.");
       return;
     }

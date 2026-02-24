@@ -142,11 +142,7 @@ export default function ReferralHistoryPage() {
   const [pipelineModal, setPipelineModal] = useState<PipelineStageKey | null>(null);
 
   useEffect(() => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    if (!userId || !supabase) {
       setLoading(false);
       return;
     }

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
-import { Clock, Download, MessageSquare, Search, Users, Zap } from "lucide-react";
+import { Activity, Clock, Download, MessageSquare, Search, Users, Zap } from "lucide-react";
 
 import { PartnersTable } from "@/components/partners/PartnersTable";
 import { Button } from "@/components/ui/button";
@@ -134,8 +134,20 @@ function matchesQuarter(partner: Partner, quarter: string): boolean {
   return normalized.toUpperCase().startsWith(quarter.toUpperCase());
 }
 
+function formatRecentDate(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 export default function CurrentPartnersPage() {
   const [partners, setPartners] = useState<Partner[]>([]);
+  const [recentActivity, setRecentActivity] = useState<ReferralRow[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"All" | PartnerStatus>("All");
   const [industryFilter, setIndustryFilter] = useState("All");
@@ -195,9 +207,7 @@ export default function CurrentPartnersPage() {
         setPartners(parseExcelData(jsonData));
       } catch (err) {
         console.warn("Excel file or sheet not found. Trying Supabase referrals.", err);
-        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-        if (url && key) {
+        if (supabase) {
           const { data, error } = await supabase
             .from("referrals")
             .select("*")
@@ -215,6 +225,18 @@ export default function CurrentPartnersPage() {
       }
     }
     loadExcelData();
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from("referrals")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (!error && data?.length) setRecentActivity(data as ReferralRow[]);
+    })();
   }, []);
 
   function handleExport() {
@@ -417,6 +439,38 @@ export default function CurrentPartnersPage() {
           pageSize={pageSize}
           onSelectionChange={setSelectedPartnerIds}
         />
+      )}
+
+      {recentActivity.length > 0 && (
+        <Card className="bg-card/50 border-border/70 shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <Activity className="size-4 text-muted-foreground" aria-hidden />
+              <span className="text-sm font-medium text-foreground">Recent Activity</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Latest referrals submitted through the portal (all users).
+            </p>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
+              {recentActivity.map((row) => (
+                <li
+                  key={row.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-sm"
+                >
+                  <span className="font-medium text-foreground">{row.company_name ?? "—"}</span>
+                  <span className="text-muted-foreground capitalize">
+                    {row.status.replace("_", " ")}
+                  </span>
+                  <span className="w-full text-xs text-muted-foreground sm:w-auto">
+                    {formatRecentDate(row.created_at)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
