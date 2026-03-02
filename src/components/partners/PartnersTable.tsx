@@ -26,7 +26,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const CENTER_ALIGN_COLUMNS = new Set(["status", "industry", "date", "referredBy", "lastUpdated", "email"]);
+const CENTER_ALIGN_COLUMNS = new Set(["status", "industry", "date", "referredBy", "email"]);
 
 function statusVariant(status: PartnerStatus): "success" | "info" | "warning" | "muted" | "destructive" | "default" {
   switch (status) {
@@ -125,28 +125,21 @@ export function PartnersTable({
       },
       {
         accessorKey: "date",
-        header: "Referred On",
+        header: "Conversation Started",
         cell: ({ row }) => (
           <span className="whitespace-nowrap text-muted-foreground">{row.original.date || "—"}</span>
         ),
       },
       {
         accessorKey: "referredBy",
-        header: "Referred By",
+        header: "Source of Introduction",
         cell: ({ row }) => (
           <span className="whitespace-nowrap text-muted-foreground">{row.original.referredBy || "—"}</span>
         ),
       },
       {
-        accessorKey: "lastUpdated",
-        header: "Last Updated",
-        cell: ({ row }) => (
-          <span className="whitespace-nowrap text-muted-foreground">{row.original.lastUpdated || "—"}</span>
-        ),
-      },
-      {
         accessorKey: "email",
-        header: "Contact",
+        header: "Primary Stakeholder",
         cell: ({ row }) => {
           const email = row.original.email;
           if (!email || email === "Contact info pending") {

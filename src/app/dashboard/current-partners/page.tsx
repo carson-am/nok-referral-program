@@ -71,7 +71,6 @@ function referralsToPartners(rows: ReferralRow[]): Partner[] {
       email: row.email ?? "",
       date,
       referredBy: "—",
-      lastUpdated: "—",
     };
   });
 }
@@ -97,7 +96,6 @@ function parseExcelData(data: unknown[]): Partner[] {
         industry: String(dealType),
         email,
         referredBy: "—",
-        lastUpdated: "—",
       };
 
       if (estimatedCloseDate) partner.date = String(estimatedCloseDate);
@@ -246,10 +244,9 @@ export default function CurrentPartnersPage() {
       "Partner Name",
       "Status",
       "Industry",
-      "Referred On",
-      "Referred By",
-      "Last Updated",
-      "Contact Email",
+      "Conversation Started",
+      "Source of Introduction",
+      "Primary Stakeholder",
     ];
     const rows = toExport.map((p) => [
       p.name,
@@ -257,7 +254,6 @@ export default function CurrentPartnersPage() {
       p.industry,
       p.date ?? "",
       p.referredBy ?? "",
-      p.lastUpdated ?? "",
       p.email === "Contact info pending" ? "" : p.email,
     ]);
     const csv = [headers.join(","), ...rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))].join("\n");
@@ -277,7 +273,7 @@ export default function CurrentPartnersPage() {
           Nok Pipeline
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          A shared directory of the Nok pipeline and its current status.
+          A shared directory of the Nok pipeline and its current status. If you know anyone at the companies listed below, please reach out to Maddy@nokrecommerce.com, even if they&apos;re already in the pipeline. We love to &quot;swarm&quot; our pipeline companies as much as possible!
         </p>
       </div>
 

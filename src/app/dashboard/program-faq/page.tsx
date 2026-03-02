@@ -60,7 +60,7 @@ export default function ProgramFaqPage() {
             <AccordionItem value="lead-1">
               <AccordionTrigger>What types of companies are the best fit for Nok?</AccordionTrigger>
               <AccordionContent>
-                Nok specializes in circular supply chain solutions. Ideal referrals are brands, retailers, or manufacturers looking to optimize their returns process or manage overstock.
+                Ideal referrals are to consumer electronic brands (we like to say, if you plug it in and it gets hot, makes a noise or blows air!) that want to turn their returns from a cost center to a profit center.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="lead-2">
@@ -72,7 +72,7 @@ export default function ProgramFaqPage() {
             <AccordionItem value="lead-3">
               <AccordionTrigger>What is the typical &quot;sweet spot&quot; for a Nok partner in terms of size?</AccordionTrigger>
               <AccordionContent>
-                We drive the most value for mid-market to enterprise-level brands that process at least $10M in annual returns or overstock.
+                We drive the most value for mid-market brands that process 20,000-30,000 returns / year.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="lead-4">
