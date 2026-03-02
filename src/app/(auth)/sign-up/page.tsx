@@ -106,7 +106,7 @@ export default function SignUpPage() {
       if (signUpAttempt.status === "complete") {
         await setActive({
           session: signUpAttempt.createdSessionId,
-          navigate: () => router.push("/dashboard/current-partners"),
+          navigate: () => router.push("/dashboard/referral-history"),
         });
         toast.success("Account created successfully! Welcome to Nok.");
         setVerificationOpen(false);

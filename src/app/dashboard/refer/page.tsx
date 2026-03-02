@@ -79,7 +79,7 @@ export default function IntroducePartnerPage() {
     if (typeof sessionStorage !== "undefined") {
       sessionStorage.setItem(REFERRAL_SUCCESS_KEY, "1");
     }
-    router.push("/dashboard/current-partners");
+    router.push("/dashboard/referral-history");
   }
 
   return (
@@ -89,7 +89,7 @@ export default function IntroducePartnerPage() {
           Introduce a Partner
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          The most successful partnerships start with a warm introduction. Please use the form below to submit your intro; we&apos;ll be ready to jump in once you&apos;ve sent the email and CC&apos;d Maddy.
+          Submit your referral and we&apos;ll take it from here. You&apos;ll be redirected back to your Personal Dashboard while we review the details.
         </p>
       </div>
 

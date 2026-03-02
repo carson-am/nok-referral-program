@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
-import { HelpCircle, History, LogOut, Megaphone, Users } from "lucide-react";
+import { HelpCircle, History, LogOut, Megaphone } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/dashboard/current-partners", label: "Nok Pipeline", icon: Users },
   { href: "/dashboard/referral-history", label: "Personal Dashboard", icon: History },
   { href: "/dashboard/marketing-materials", label: "Nok Materials", icon: Megaphone },
   { href: "/dashboard/program-faq", label: "Program FAQ", icon: HelpCircle },
@@ -25,7 +24,7 @@ export function Sidebar() {
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-[260px] flex-col border-r border-border/70 bg-card/80 md:flex">
       <div className="px-5 pt-6 pb-4">
         <Link
-          href="/dashboard/current-partners"
+          href="/dashboard/referral-history"
           className="flex flex-col items-start transition-opacity hover:opacity-90"
         >
           <span className="text-xl font-bold tracking-tight text-white">nok</span>

@@ -7,9 +7,9 @@ Referral Partner Tool for **Nok Recommerce** built with **Next.js App Router**, 
 - **`/`**: Mock Sign In (Sign In / Sign Up buttons redirect to the dashboard)
 - **`/sign-up`**: Capacity-inspired sign-up form (submit redirects to the dashboard)
 - **`/dashboard/*`**: App shell with sidebar + fixed top nav
-  - **`/dashboard/current-partners`**: Data table with mock partners
-  - **`/dashboard/refer`**: “Refer a Partner” form
-  - Other tabs are placeholders for now
+  - **`/dashboard/referral-history`**: Personal Dashboard (referral stats, pipeline, recent activity)
+  - **`/dashboard/refer`**: “Introduce a Partner” form
+  - Nok Materials, Program FAQ
 
 ## Getting Started
 

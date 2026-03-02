@@ -56,7 +56,7 @@ export default function SignInPage() {
       if (signInAttempt.status === "complete") {
         await setActive({
           session: signInAttempt.createdSessionId,
-          navigate: () => router.push("/dashboard/current-partners"),
+          navigate: () => router.push("/dashboard/referral-history"),
         });
         return;
       }
@@ -98,7 +98,7 @@ export default function SignInPage() {
       if (signInAttempt.status === "complete") {
         await setActive({
           session: signInAttempt.createdSessionId,
-          navigate: () => router.push("/dashboard/current-partners"),
+          navigate: () => router.push("/dashboard/referral-history"),
         });
       } else {
         toast.error("Verification failed. Please try again.");
@@ -149,7 +149,7 @@ export default function SignInPage() {
       if (signInAttempt.status === "complete") {
         await setActive({
           session: signInAttempt.createdSessionId,
-          navigate: () => router.push("/dashboard/current-partners"),
+          navigate: () => router.push("/dashboard/referral-history"),
         });
         toast.success("Password reset successfully.");
         setForgotPasswordOpen(false);
