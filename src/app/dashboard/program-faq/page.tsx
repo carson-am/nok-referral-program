@@ -1,9 +1,12 @@
+import { Mail } from "lucide-react";
+
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 
 export default function ProgramFaqPage() {
   return (
@@ -20,9 +23,17 @@ export default function ProgramFaqPage() {
       <div className="mx-auto max-w-[850px] space-y-12">
         {/* Section 1: General Process */}
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">
-            General Process
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold text-foreground">
+              General Process
+            </h2>
+            <Button asChild size="sm" className="transition-transform hover:scale-[1.02]">
+              <a href="mailto:maddy@nokrecommerce.com" className="inline-flex items-center gap-1.5">
+                <Mail className="size-4 shrink-0" />
+                Contact Maddy
+              </a>
+            </Button>
+          </div>
           <Accordion type="single" collapsible className="space-y-3">
             <AccordionItem value="general-1">
               <AccordionTrigger>How do I submit a new referral?</AccordionTrigger>
@@ -53,9 +64,17 @@ export default function ProgramFaqPage() {
 
         {/* Section 2: Ideal Lead Profile */}
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">
-            Ideal Lead Profile
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold text-foreground">
+              Ideal Lead Profile
+            </h2>
+            <Button asChild size="sm" className="transition-transform hover:scale-[1.02]">
+              <a href="mailto:maddy@nokrecommerce.com" className="inline-flex items-center gap-1.5">
+                <Mail className="size-4 shrink-0" />
+                Contact Maddy
+              </a>
+            </Button>
+          </div>
           <Accordion type="single" collapsible className="space-y-3">
             <AccordionItem value="lead-1">
               <AccordionTrigger>What types of companies are the best fit for Nok?</AccordionTrigger>
@@ -86,9 +105,17 @@ export default function ProgramFaqPage() {
 
         {/* Section 3: Rewards & Payouts */}
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">
-            Rewards & Payouts
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold text-foreground">
+              Rewards & Payouts
+            </h2>
+            <Button asChild size="sm" className="transition-transform hover:scale-[1.02]">
+              <a href="mailto:nick.salgado@nokrecommerce.com" className="inline-flex items-center gap-1.5">
+                <Mail className="size-4 shrink-0" />
+                Contact Nick
+              </a>
+            </Button>
+          </div>
           <Accordion type="single" collapsible className="space-y-3">
             <AccordionItem value="rewards-1">
               <AccordionTrigger>How and when do I get paid for a successful referral?</AccordionTrigger>
