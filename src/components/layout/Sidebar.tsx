@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 const NAV_ITEMS = [
   { href: "/dashboard/current-partners", label: "Nok Pipeline", icon: Users },
   { href: "/dashboard/referral-history", label: "Personal Dashboard", icon: History },
-  { href: "/dashboard/marketing-materials", label: "Marketing Materials", icon: Megaphone },
+  { href: "/dashboard/marketing-materials", label: "Nok Materials", icon: Megaphone },
   { href: "/dashboard/program-faq", label: "Program FAQ", icon: HelpCircle },
 ] as const;
 

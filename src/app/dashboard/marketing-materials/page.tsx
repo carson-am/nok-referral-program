@@ -1,4 +1,4 @@
-import { Presentation, FileText, ExternalLink, Download } from "lucide-react";
+import { Presentation, FileText, Table, Mail, ExternalLink, Download } from "lucide-react";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ export default function MarketingMaterialsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Marketing Materials
+          Nok Materials
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Everything you need to share Nok with confidence — messaging, assets, and resources at
@@ -77,6 +77,76 @@ export default function MarketingMaterialsPage() {
               </Button>
               <Button variant="default" asChild className="flex-1">
                 <Link href="/nok-ICP.pdf" download>
+                  <Download className="size-4" />
+                  Download
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Nok External Customer Pipeline Card */}
+        <Card className="bg-card/50 transition-all hover:scale-[1.02] hover:border-primary/30">
+          <CardHeader>
+            <div className="mb-4 flex items-center justify-between">
+              <Table className="size-8 text-primary" />
+              <Badge variant="default">Pipeline</Badge>
+            </div>
+            <CardTitle>Nok External Customer Pipeline</CardTitle>
+            <CardDescription>
+              A shared directory of Nok&apos;s external customer pipeline, tracking company names,
+              statuses, and key contacts across active and prospective brand relationships.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3">
+              <Button variant="ghost" asChild className="flex-1">
+                <Link
+                  href="/nok-external-customer-pipeline.xlsx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="size-4" />
+                  View
+                </Link>
+              </Button>
+              <Button variant="default" asChild className="flex-1">
+                <Link href="/nok-external-customer-pipeline.xlsx" download>
+                  <Download className="size-4" />
+                  Download
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Nok Introduction Email Templates Card */}
+        <Card className="bg-card/50 transition-all hover:scale-[1.02] hover:border-primary/30">
+          <CardHeader>
+            <div className="mb-4 flex items-center justify-between">
+              <Mail className="size-8 text-primary" />
+              <Badge variant="default">Messaging</Badge>
+            </div>
+            <CardTitle>Nok Introduction Email Templates</CardTitle>
+            <CardDescription>
+              A set of customizable email templates for introducing prospective clients, excess
+              inventory partners, and buyers to Nok.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3">
+              <Button variant="ghost" asChild className="flex-1">
+                <Link
+                  href="/nok-introduction-email-templates.docx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="size-4" />
+                  View
+                </Link>
+              </Button>
+              <Button variant="default" asChild className="flex-1">
+                <Link href="/nok-introduction-email-templates.docx" download>
                   <Download className="size-4" />
                   Download
                 </Link>
