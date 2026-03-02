@@ -20,6 +20,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  DEMO_HERO_STATS,
+  DEMO_MOMENTUM_DATA,
+  DEMO_PARTNERS_ACTIVE,
+  DEMO_PARTNERS_CONVERTED,
+  DEMO_PARTNERS_IN_CONVERSATION,
+  DEMO_PARTNERS_PIPELINE_CONVERTED,
+  DEMO_PARTNERS_SUBMITTED,
+  DEMO_PARTNERS_TOTAL,
+  DEMO_PARTNERS_UNDER_REVIEW,
+  DEMO_PIPELINE_COUNTS,
+  DEMO_RECENT_ACTIVITY,
+} from "@/lib/referrals/demo-data";
+import {
   deriveHeroStats,
   deriveMomentumData,
   derivePipelineCounts,
@@ -157,10 +170,23 @@ export default function ReferralHistoryPage() {
     })();
   }, [userId]);
 
-  const heroStats = useMemo(() => deriveHeroStats(referrals), [referrals]);
-  const pipelineCounts = useMemo(() => derivePipelineCounts(referrals), [referrals]);
-  const momentumData = useMemo(() => deriveMomentumData(referrals), [referrals]);
-  const recentActivity = useMemo(() => deriveRecentActivity(referrals), [referrals]);
+  const isDemoMode = !loading && referrals.length === 0;
+  const heroStats = useMemo(
+    () => (isDemoMode ? DEMO_HERO_STATS : deriveHeroStats(referrals)),
+    [referrals, isDemoMode]
+  );
+  const pipelineCounts = useMemo(
+    () => (isDemoMode ? DEMO_PIPELINE_COUNTS : derivePipelineCounts(referrals)),
+    [referrals, isDemoMode]
+  );
+  const momentumData = useMemo(
+    () => (isDemoMode ? DEMO_MOMENTUM_DATA : deriveMomentumData(referrals)),
+    [referrals, isDemoMode]
+  );
+  const recentActivity = useMemo(
+    () => (isDemoMode ? DEMO_RECENT_ACTIVITY : deriveRecentActivity(referrals)),
+    [referrals, isDemoMode]
+  );
   const totalReferrals = heroStats.totalReferrals;
   const showEmptyState = !loading && totalReferrals === 0;
 
@@ -168,21 +194,38 @@ export default function ReferralHistoryPage() {
   const activeDisplay = useCountUp(heroStats.activeReferrals, !showEmptyState);
   const convertedDisplay = useCountUp(heroStats.convertedPartners, !showEmptyState);
 
-  const partnersTotal = useMemo(() => getPartnersByStatus(referrals, "total"), [referrals]);
-  const partnersActive = useMemo(() => getPartnersByStatus(referrals, "active"), [referrals]);
-  const partnersConverted = useMemo(() => getPartnersByStatus(referrals, "converted"), [referrals]);
-  const partnersSubmitted = useMemo(() => getPartnersByStatus(referrals, "submitted"), [referrals]);
+  const partnersTotal = useMemo(
+    () => (isDemoMode ? DEMO_PARTNERS_TOTAL : getPartnersByStatus(referrals, "total")),
+    [referrals, isDemoMode]
+  );
+  const partnersActive = useMemo(
+    () => (isDemoMode ? DEMO_PARTNERS_ACTIVE : getPartnersByStatus(referrals, "active")),
+    [referrals, isDemoMode]
+  );
+  const partnersConverted = useMemo(
+    () => (isDemoMode ? DEMO_PARTNERS_CONVERTED : getPartnersByStatus(referrals, "converted")),
+    [referrals, isDemoMode]
+  );
+  const partnersSubmitted = useMemo(
+    () => (isDemoMode ? DEMO_PARTNERS_SUBMITTED : getPartnersByStatus(referrals, "submitted")),
+    [referrals, isDemoMode]
+  );
   const partnersUnderReview = useMemo(
-    () => getPartnersByStatus(referrals, "under_review"),
-    [referrals]
+    () =>
+      isDemoMode ? DEMO_PARTNERS_UNDER_REVIEW : getPartnersByStatus(referrals, "under_review"),
+    [referrals, isDemoMode]
   );
   const partnersInConversation = useMemo(
-    () => getPartnersByStatus(referrals, "in_conversation"),
-    [referrals]
+    () =>
+      isDemoMode
+        ? DEMO_PARTNERS_IN_CONVERSATION
+        : getPartnersByStatus(referrals, "in_conversation"),
+    [referrals, isDemoMode]
   );
   const partnersConvertedPipeline = useMemo(
-    () => getPartnersByStatus(referrals, "converted"),
-    [referrals]
+    () =>
+      isDemoMode ? DEMO_PARTNERS_PIPELINE_CONVERTED : getPartnersByStatus(referrals, "converted"),
+    [referrals, isDemoMode]
   );
 
   if (loading) {
@@ -203,7 +246,7 @@ export default function ReferralHistoryPage() {
     );
   }
 
-  if (showEmptyState) {
+  if (showEmptyState && !isDemoMode) {
     return (
       <div className="space-y-6">
         <div>
@@ -217,7 +260,7 @@ export default function ReferralHistoryPage() {
         <Card className="bg-card/50 flex flex-col items-center justify-center py-16">
           <p className="text-muted-foreground mb-6">No referrals yet</p>
           <Button asChild>
-            <Link href="/dashboard/refer">Refer your first partner</Link>
+            <Link href="/dashboard/refer">Introduce your first partner</Link>
           </Button>
         </Card>
       </div>
@@ -239,6 +282,11 @@ export default function ReferralHistoryPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Track your referrals from submission to close — see status updates and key milestones.
         </p>
+        {isDemoMode && (
+          <p className="mt-1 text-xs text-muted-foreground/80">
+            Showing sample data. Introduce a partner to see your real referrals.
+          </p>
+        )}
       </div>
 
       {/* Hero stats */}
