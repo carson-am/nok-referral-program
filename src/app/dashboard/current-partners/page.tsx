@@ -186,7 +186,7 @@ export default function CurrentPartnersPage() {
     if (typeof sessionStorage === "undefined") return;
     const flag = sessionStorage.getItem(REFERRAL_SUCCESS_KEY);
     if (flag) {
-      toast.success("Your response has been recorded.");
+      toast.success("Introduction logged. Maddy will look out for the email thread!");
       sessionStorage.removeItem(REFERRAL_SUCCESS_KEY);
     }
   }, []);
