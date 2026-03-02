@@ -65,10 +65,10 @@ function referralsToPartners(rows: ReferralRow[]): Partner[] {
     const date = `Q${quarter} - ${year}`;
     return {
       id: row.id,
-      name: row.company_name ?? "—",
+      name: row.partner_name ?? "—",
       status: referralStatusToPartnerStatus(row.status),
       industry: "—",
-      email: row.email ?? "",
+      email: row.contact_email ?? "",
       date,
       referredBy: "—",
     };
@@ -455,7 +455,7 @@ export default function CurrentPartnersPage() {
                   key={row.id}
                   className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-sm"
                 >
-                  <span className="font-medium text-foreground">{row.company_name ?? "—"}</span>
+                  <span className="font-medium text-foreground">{row.partner_name ?? "—"}</span>
                   <span className="text-muted-foreground capitalize">
                     {row.status.replace("_", " ")}
                   </span>

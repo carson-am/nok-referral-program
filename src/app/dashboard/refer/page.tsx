@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -54,7 +54,7 @@ export default function IntroducePartnerPage() {
 
   async function onSubmit(values: IntroduceValues) {
     if (!userId) {
-      toast.error("You must be signed in to log an introduction.");
+      toast.error("You must be signed in to submit an introduction.");
       return;
     }
     if (!supabase) {
@@ -64,10 +64,10 @@ export default function IntroducePartnerPage() {
     const { error } = await supabase.from("referrals").insert({
       user_id: userId,
       full_name: values.fullName.trim(),
+      partner_name: values.companyName.trim(),
+      contact_email: values.email.trim(),
       job_title: "—",
-      company_name: values.companyName.trim(),
       company_website: "—",
-      email: values.email.trim(),
       phone: "—",
       relationship: "—",
       status: "submitted",
@@ -89,16 +89,13 @@ export default function IntroducePartnerPage() {
           Introduce a Partner
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          The most successful partnerships start with a warm introduction. Please use the form below to log your intro; we&apos;ll be ready to jump in once you&apos;ve sent the email and CC&apos;d Maddy.
+          The most successful partnerships start with a warm introduction. Please use the form below to submit your intro; we&apos;ll be ready to jump in once you&apos;ve sent the email and CC&apos;d Maddy.
         </p>
       </div>
 
       <Card className="bg-card/50">
         <CardHeader>
           <CardTitle>Introduction Details</CardTitle>
-          <CardDescription>
-            Ensure Maddy (maddy@nokrecommerce.com) is included on the thread.
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -192,7 +189,7 @@ export default function IntroducePartnerPage() {
                   type="submit"
                   disabled={form.formState.isSubmitting || !warmIntroConfirmed}
                 >
-                  {form.formState.isSubmitting ? "Logging..." : "Log Introduction"}
+                  {form.formState.isSubmitting ? "Submitting..." : "Submit Introduction"}
                 </Button>
               </div>
             </form>

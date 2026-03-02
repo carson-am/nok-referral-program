@@ -5,7 +5,7 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 
 function rowToPartner(row: ReferralRow): ReferralPartner {
   return {
-    partnerName: row.company_name,
+    partnerName: row.partner_name,
     dateReferred: new Date(row.created_at),
     industry: "—",
   };
@@ -70,10 +70,10 @@ export function deriveRecentActivity(rows: ReferralRow[]): RecentActivityItem[] 
   return sorted.slice(0, 5).map((row, i) => {
     const label =
       row.status === "submitted"
-        ? `New Referral: ${row.company_name}`
+        ? `New Referral: ${row.partner_name}`
         : row.status === "converted"
-          ? `${row.company_name} converted to partner`
-          : `${row.company_name} moved to '${row.status.replace("_", " ")}'`;
+          ? `${row.partner_name} converted to partner`
+          : `${row.partner_name} moved to '${row.status.replace("_", " ")}'`;
     return {
       id: row.id,
       type: row.status as ActivityType,

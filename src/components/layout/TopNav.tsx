@@ -12,7 +12,7 @@ export function TopNav() {
         <Button asChild className="shadow-sm">
           <Link href="/dashboard/refer">
             <Plus />
-            Refer a Partner
+            Introduce A Partner
           </Link>
         </Button>
       </div>

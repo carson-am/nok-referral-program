@@ -8,10 +8,10 @@ export type ReferralRow = {
   id: string;
   user_id: string;
   full_name: string;
+  partner_name: string;
+  contact_email: string;
   job_title: string;
-  company_name: string;
   company_website: string;
-  email: string;
   phone: string;
   relationship: string;
   status: ReferralStatus;
