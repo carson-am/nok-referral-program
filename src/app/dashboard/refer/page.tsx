@@ -66,16 +66,12 @@ export default function IntroducePartnerPage() {
       full_name: values.fullName.trim(),
       partner_name: values.companyName.trim(),
       contact_email: values.email.trim(),
-      job_title: "—",
-      company_website: "—",
-      phone: "—",
-      relationship: "—",
-      status: "submitted",
     });
     if (error) {
       toast.error(error.message || "Failed to save introduction. Please try again.");
       return;
     }
+    toast.success("Introduction logged. Maddy will look out for the email thread!");
     if (typeof sessionStorage !== "undefined") {
       sessionStorage.setItem(REFERRAL_SUCCESS_KEY, "1");
     }
