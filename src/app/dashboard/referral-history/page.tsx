@@ -1,14 +1,14 @@
 \"use client\";
 
-import { useEffect, useMemo, useState } from \"react\";
-import { useAuth } from \"@clerk/nextjs\";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 
-import { MonthlyCalendar } from \"@/components/referral-history/MonthlyCalendar\";
-import { Card, CardContent, CardHeader, CardTitle } from \"@/components/ui/card\";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from \"@/components/ui/dialog\";
-import type { MondayItemBase, MondayStageKey } from \"@/lib/monday\";
-import type { ReferralRow } from \"@/lib/supabase/types\";
-import { supabase } from \"@/lib/supabase/client\";
+import { MonthlyCalendar } from "@/components/referral-history/MonthlyCalendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import type { MondayItemBase, MondayStageKey } from "@/lib/monday";
+import type { ReferralRow } from "@/lib/supabase/types";
+import { supabase } from "@/lib/supabase/client";
 
 type ItemsByStage = Record<MondayStageKey, MondayItemBase[]>;
 
@@ -28,32 +28,32 @@ function createEmptyStageMap(): ItemsByStage {
 }
 
 const STAGE_CONFIGS: { key: MondayStageKey; label: string; colorClass: string }[] = [
-  { key: \"submitted\", label: \"Submitted\", colorClass: \"bg-muted-foreground/50\" },
+  { key: "submitted", label: "Submitted", colorClass: "bg-muted-foreground/50" },
   {
-    key: \"scheduling_initial_call\",
-    label: \"Scheduling Initial Call\",
-    colorClass: \"bg-yellow-400\",
+    key: "scheduling_initial_call",
+    label: "Scheduling Initial Call",
+    colorClass: "bg-yellow-400",
   },
-  { key: \"scheduling_demo\", label: \"Scheduling Demo\", colorClass: \"bg-orange-400\" },
-  { key: \"demo_scheduled\", label: \"Demo Scheduled\", colorClass: \"bg-purple-500\" },
+  { key: "scheduling_demo", label: "Scheduling Demo", colorClass: "bg-orange-400" },
+  { key: "demo_scheduled", label: "Demo Scheduled", colorClass: "bg-purple-500" },
   {
-    key: \"getting_3pl_rate_card\",
-    label: \"Getting 3PL Rate Card\",
-    colorClass: \"bg-sky-500\",
-  },
-  {
-    key: \"getting_refurb_lines_set\",
-    label: \"Getting Refurb Lines Set\",
-    colorClass: \"bg-emerald-700\",
+    key: "getting_3pl_rate_card",
+    label: "Getting 3PL Rate Card",
+    colorClass: "bg-sky-500",
   },
   {
-    key: \"need_to_follow_up\",
-    label: \"Need to Follow Up\",
-    colorClass: \"bg-sky-300\",
+    key: "getting_refurb_lines_set",
+    label: "Getting Refurb Lines Set",
+    colorClass: "bg-emerald-700",
   },
-  { key: \"on_hold\", label: \"On Hold\", colorClass: \"bg-muted-foreground/60\" },
-  { key: \"stuck\", label: \"Stuck\", colorClass: \"bg-red-500\" },
-  { key: \"done\", label: \"Done\", colorClass: \"bg-lime-500\" },
+  {
+    key: "need_to_follow_up",
+    label: "Need to Follow Up",
+    colorClass: "bg-sky-300",
+  },
+  { key: "on_hold", label: "On Hold", colorClass: "bg-muted-foreground/60" },
+  { key: "stuck", label: "Stuck", colorClass: "bg-red-500" },
+  { key: "done", label: "Done", colorClass: "bg-lime-500" },
 ];
 
 type StageModalState = MondayStageKey | null;
@@ -75,10 +75,10 @@ export default function ReferralHistoryPage() {
 
     (async () => {
       const { data, error } = await supabase
-        .from(\"referrals\")
-        .select(\"*\")
-        .eq(\"user_id\", userId)
-        .order(\"created_at\", { ascending: false });
+        .from("referrals")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
 
       if (!error) {
         setReferrals((data as ReferralRow[]) ?? []);
@@ -90,7 +90,7 @@ export default function ReferralHistoryPage() {
   useEffect(() => {
     (async () => {
       try {
-        const response = await fetch(\"/api/monday/user-pipeline\");
+        const response = await fetch("/api/monday/user-pipeline");
         if (!response.ok) {
           setItemsByStage(createEmptyStageMap());
           setLoadingPipeline(false);
@@ -103,7 +103,7 @@ export default function ReferralHistoryPage() {
           setItemsByStage(createEmptyStageMap());
         }
       } catch (error) {
-        console.error(\"Failed to load Monday pipeline\", error);
+        console.error("Failed to load Monday pipeline", error);
         setItemsByStage(createEmptyStageMap());
       } finally {
         setLoadingPipeline(false);
@@ -154,62 +154,62 @@ export default function ReferralHistoryPage() {
   const isLoading = loadingReferrals || loadingPipeline;
 
   return (
-    <div className=\"space-y-6\">
+    <div className="space-y-6">
       <div>
-        <h1 className=\"text-2xl font-semibold tracking-tight text-foreground\">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           Personal Dashboard
         </h1>
-        <p className=\"mt-1 text-sm text-muted-foreground\">
+        <p className="mt-1 text-sm text-muted-foreground">
           Command center for your Nok intros – track every partner from first submission to done.
         </p>
       </div>
 
-      <Card className=\"bg-card/50\">
-        <CardHeader className=\"flex flex-row items-center justify-between pb-2\">
+      <Card className="bg-card/50">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
-            <CardTitle className=\"text-base\">Potential Rewards</CardTitle>
-            <p className=\"text-xs text-muted-foreground\">
+            <CardTitle className="text-base">Potential Rewards</CardTitle>
+            <p className="text-xs text-muted-foreground">
               Estimated upside based on all non-stuck referrals in your pipeline.
             </p>
           </div>
-          <div className=\"text-2xl font-bold tracking-tight\">
+          <div className="text-2xl font-bold tracking-tight">
             ${potentialRewards.toLocaleString()}
           </div>
         </CardHeader>
       </Card>
 
-      <Card className=\"bg-card/50\">
+      <Card className="bg-card/50">
         <CardHeader>
-          <CardTitle className=\"text-base\">Pipeline Stages</CardTitle>
+          <CardTitle className="text-base">Pipeline Stages</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className=\"text-sm text-muted-foreground\">Loading your pipeline…</p>
+            <p className="text-sm text-muted-foreground">Loading your pipeline…</p>
           ) : (
-            <div className=\"grid grid-cols-2 gap-3 md:grid-cols-5\">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
               {STAGE_CONFIGS.map(({ key, label, colorClass }) => {
                 const count = pipelineCounts[key] ?? 0;
                 return (
                   <button
                     key={key}
-                    type=\"button\"
-                    className=\"flex h-28 flex-col justify-between rounded-xl border border-border/70 bg-muted/10 p-3 text-left transition-colors hover:border-primary/60 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60\"
+                    type="button"
+                    className="flex h-28 flex-col justify-between rounded-xl border border-border/70 bg-muted/10 p-3 text-left transition-colors hover:border-primary/60 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
                     onClick={() => count > 0 && setStageModal(key)}
                     disabled={count === 0}
                   >
-                    <div className=\"flex items-center justify-between gap-2 text-xs font-medium\">
-                      <span className=\"text-foreground\">{label}</span>
+                    <div className="flex items-center justify-between gap-2 text-xs font-medium">
+                      <span className="text-foreground">{label}</span>
                       <span
                         className={`inline-flex size-2 shrink-0 rounded-full ${colorClass}`}
                         aria-hidden
                       />
                     </div>
-                    <div className=\"mt-2\">
-                      <span className=\"text-2xl font-bold text-foreground\">
+                    <div className="mt-2">
+                      <span className="text-2xl font-bold text-foreground">
                         {count}
                       </span>
-                      <span className=\"ml-1 text-xs text-muted-foreground\">
-                        {count === 1 ? \"partner\" : \"partners\"}
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        {count === 1 ? "partner" : "partners"}
                       </span>
                     </div>
                   </button>
@@ -249,43 +249,43 @@ function StageModal({
 
   return (
     <Dialog open={Boolean(stage)} onOpenChange={onOpenChange}>
-      <DialogContent showClose className=\"max-h-[85vh] flex flex-col overflow-hidden\">
+      <DialogContent showClose className="max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <div className=\"overflow-auto rounded-xl border border-border/80\">
+        <div className="overflow-auto rounded-xl border border-border/80">
           {items.length === 0 ? (
-            <p className=\"p-4 text-sm text-muted-foreground\">No partners in this stage.</p>
+            <p className="p-4 text-sm text-muted-foreground">No partners in this stage.</p>
           ) : (
-            <table className=\"w-full text-sm\">
+            <table className="w-full text-sm">
               <thead>
-                <tr className=\"border-b border-border/80 bg-muted/30\">
-                  <th className=\"px-4 py-3 text-left font-medium text-foreground\">Company</th>
-                  <th className=\"px-4 py-3 text-left font-medium text-foreground\">Status</th>
-                  <th className=\"px-4 py-3 text-left font-medium text-foreground\">Created</th>
+                <tr className="border-b border-border/80 bg-muted/30">
+                  <th className="px-4 py-3 text-left font-medium text-foreground">Company</th>
+                  <th className="px-4 py-3 text-left font-medium text-foreground">Status</th>
+                  <th className="px-4 py-3 text-left font-medium text-foreground">Created</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((item) => {
                   const created = item.created_at ? new Date(item.created_at) : null;
                   const createdLabel = created
-                    ? created.toLocaleDateString(\"en-US\", {
-                        month: \"short\",
-                        day: \"numeric\",
-                        year: \"numeric\",
+                    ? created.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
                       })
-                    : \"—\";
+                    : "—";
 
                   return (
                     <tr
                       key={item.id}
-                      className=\"border-b border-border/60 last:border-0\"
+                      className="border-b border-border/60 last:border-0"
                     >
-                      <td className=\"px-4 py-3 text-foreground\">{item.name}</td>
-                      <td className=\"px-4 py-3 text-muted-foreground\">
-                        {item.statusLabel || \"Submitted\"}
+                      <td className="px-4 py-3 text-foreground">{item.name}</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {item.statusLabel || "Submitted"}
                       </td>
-                      <td className=\"px-4 py-3 text-muted-foreground\">{createdLabel}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{createdLabel}</td>
                     </tr>
                   );
                 })}
