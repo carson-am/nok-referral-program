@@ -109,10 +109,16 @@ export default function SignUpPage() {
 
       setVerificationOpen(true);
     } catch (err: unknown) {
-      const message =
+      const rawMessage =
         err && typeof err === "object" && "errors" in err
-          ? (err as { errors: { message: string }[] }).errors?.[0]?.message
-          : "Could not create account. Please try again.";
+          ? (err as { errors: { message: string; code?: string }[] }).errors?.[0]?.message ?? ""
+          : "";
+      const isPwnedOrCompromised =
+        typeof rawMessage === "string" &&
+        /pwned|compromised|data breach|breach|password has been found/i.test(rawMessage);
+      const message = isPwnedOrCompromised
+        ? "This password does not meet our security standards. Please choose a different password."
+        : rawMessage || "Could not create account. Please try again.";
       toast.error(message);
     } finally {
       setIsCreating(false);
@@ -285,7 +291,7 @@ export default function SignUpPage() {
                     rel="noopener noreferrer"
                     className="text-sm font-medium text-primary hover:underline"
                   >
-                    Download PDF copy
+                    Download PDF
                   </a>
                 </div>
                 <ScrollArea className="h-[300px] w-full rounded-xl border border-border/70 bg-muted/20 p-4">
