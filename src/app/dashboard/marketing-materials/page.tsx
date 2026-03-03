@@ -20,7 +20,7 @@ export default function MarketingMaterialsPage() {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Nok Short Form Deck Card */}
-        <Card className="bg-card/50 transition-all hover:scale-[1.02] hover:border-primary/30">
+        <Card className="bg-card/50 flex h-full flex-col transition-all hover:scale-[1.02] hover:border-primary/30">
           <CardHeader>
             <div className="mb-4 flex items-center justify-between">
               <Presentation className="size-8 text-primary" />
@@ -32,7 +32,7 @@ export default function MarketingMaterialsPage() {
               high-level introductions to prospective brands.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="mt-auto">
             <div className="flex gap-3">
               <Button variant="ghost" asChild className="flex-1">
                 <Link
@@ -55,7 +55,7 @@ export default function MarketingMaterialsPage() {
         </Card>
 
         {/* Nok's ICP Card */}
-        <Card className="bg-card/50 transition-all hover:scale-[1.02] hover:border-primary/30">
+        <Card className="bg-card/50 flex h-full flex-col transition-all hover:scale-[1.02] hover:border-primary/30">
           <CardHeader>
             <div className="mb-4 flex items-center justify-between">
               <FileText className="size-8 text-primary" />
@@ -67,7 +67,7 @@ export default function MarketingMaterialsPage() {
               requirements, and pain points that make a lead a perfect fit for Nok.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="mt-auto">
             <div className="flex gap-3">
               <Button variant="ghost" asChild className="flex-1">
                 <Link href="/nok-ICP.pdf" target="_blank" rel="noopener noreferrer">
@@ -86,7 +86,7 @@ export default function MarketingMaterialsPage() {
         </Card>
 
         {/* Nok External Customer Pipeline Card */}
-        <Card className="bg-card/50 transition-all hover:scale-[1.02] hover:border-primary/30">
+        <Card className="bg-card/50 flex h-full flex-col transition-all hover:scale-[1.02] hover:border-primary/30">
           <CardHeader>
             <div className="mb-4 flex items-center justify-between">
               <Table className="size-8 text-primary" />
@@ -98,7 +98,7 @@ export default function MarketingMaterialsPage() {
               statuses, and key contacts across active and prospective brand relationships.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="mt-auto">
             <div className="flex gap-3">
               <Button variant="ghost" asChild className="flex-1">
                 <Link
@@ -121,7 +121,7 @@ export default function MarketingMaterialsPage() {
         </Card>
 
         {/* Nok Introduction Email Templates Card */}
-        <Card className="bg-card/50 transition-all hover:scale-[1.02] hover:border-primary/30">
+        <Card className="bg-card/50 flex h-full flex-col transition-all hover:scale-[1.02] hover:border-primary/30">
           <CardHeader>
             <div className="mb-4 flex items-center justify-between">
               <Mail className="size-8 text-primary" />
@@ -133,7 +133,7 @@ export default function MarketingMaterialsPage() {
               inventory partners, and buyers to Nok.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="mt-auto">
             <div className="flex gap-3">
               <Button variant="ghost" asChild className="flex-1">
                 <Link

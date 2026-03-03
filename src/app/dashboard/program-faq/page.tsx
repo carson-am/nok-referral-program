@@ -36,21 +36,21 @@ export default function ProgramFaqPage() {
           </div>
           <Accordion type="single" collapsible className="space-y-3">
             <AccordionItem value="general-1">
-              <AccordionTrigger>How do I submit a new referral?</AccordionTrigger>
+              <AccordionTrigger>How do I introduce a new partner?</AccordionTrigger>
               <AccordionContent>
-                Simply click the &quot;Refer a Partner&quot; button in the top navigation bar from any screen. Fill out the partner&apos;s basic contact information and our team will take it from there.
+                Simply click the &quot;Introduce a Partner&quot; button in the top navigation bar from any screen. Fill out the partner&apos;s basic contact information and send a warm introduction.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="general-2">
-              <AccordionTrigger>What happens after I submit a lead?</AccordionTrigger>
+              <AccordionTrigger>What happens after I introduce a partner?</AccordionTrigger>
               <AccordionContent>
-                Our partnership team reviews the submission within 24–48 hours. If it&apos;s a fit, we&apos;ll reach out to the contact. You can track the real-time status of the lead in your &quot;Personal Dashboard&quot; tab.
+                Our partnership team reviews the submission and waits for the warm introduction. You can track the real-time status of the lead in your &quot;Personal Dashboard&quot; tab.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="general-3">
               <AccordionTrigger>Can I edit a referral after I have submitted it?</AccordionTrigger>
               <AccordionContent>
-                To maintain data integrity, referrals cannot be edited directly after submission. If you need to update contact information, please contact your Partnership Manager.
+                To maintain data integrity, referrals cannot be edited directly after submission. If you need to update partner information, please contact Maddy.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="general-4">
@@ -97,7 +97,7 @@ export default function ProgramFaqPage() {
             <AccordionItem value="lead-4">
               <AccordionTrigger>Do I need to make a formal introduction, or just provide the contact info?</AccordionTrigger>
               <AccordionContent>
-                While a &quot;warm intro&quot; via email increases the chance of conversion, it is not required. Providing the contact info through this portal is enough for our team to begin outreach.
+                A formal introduction is required. While you provide contact info through this portal, please also send a warm intro via email to ensure we can begin the process.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -120,13 +120,7 @@ export default function ProgramFaqPage() {
             <AccordionItem value="rewards-1">
               <AccordionTrigger>How and when do I get paid for a successful referral?</AccordionTrigger>
               <AccordionContent>
-                Referral rewards are triggered once the referred partner signs a contract and completes their first transaction. Payouts are processed monthly.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="rewards-2">
-              <AccordionTrigger>What do the different status badges mean?</AccordionTrigger>
-              <AccordionContent>
-                Pending means the lead is under review; In Progress means we are in active talks; Converted means the deal is closed; and Inactive means the lead didn&apos;t move forward.
+                Referral rewards are triggered once the referred partner signs a contract. Payouts are processed monthly.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="rewards-3">
@@ -138,7 +132,7 @@ export default function ProgramFaqPage() {
             <AccordionItem value="rewards-4">
               <AccordionTrigger>Where can I view my lifetime earnings and upcoming payouts?</AccordionTrigger>
               <AccordionContent>
-                You can view a high-level summary in the &quot;Personal Dashboard&quot; tab. Detailed financial reporting can be found in the &quot;Marketing Materials&quot; section.
+                You can view a high-level summary in the &quot;Personal Dashboard&quot; tab.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
