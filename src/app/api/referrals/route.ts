@@ -51,8 +51,8 @@ export async function POST(request: Request) {
     try {
       const clerkUser = await currentUser();
       const clerkFullName =
-        clerkUser?.fullName ??
-        [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") ||
+        (clerkUser?.fullName ??
+          [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ")) ||
         trimmedFullName;
       const clerkEmail =
         clerkUser?.primaryEmailAddress?.emailAddress ??
