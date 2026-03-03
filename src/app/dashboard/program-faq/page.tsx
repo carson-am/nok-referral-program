@@ -20,7 +20,7 @@ export default function ProgramFaqPage() {
         </p>
       </div>
 
-      <div className="mx-auto max-w-[850px] space-y-12">
+      <div className="mx-auto max-w-3xl space-y-12">
         {/* Section 1: General Process */}
         <section className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
