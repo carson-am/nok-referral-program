@@ -1,503 +1,300 @@
-"use client";
+\"use client\";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
-import { useAuth } from "@clerk/nextjs";
-import {
-  Activity,
-  CheckCircle2,
-  DollarSign,
-  Users,
-} from "lucide-react";
+import { useEffect, useMemo, useState } from \"react\";
+import { useAuth } from \"@clerk/nextjs\";
 
-import { MomentumChart } from "@/components/referral-history/MomentumChart";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DEMO_HERO_STATS,
-  DEMO_MOMENTUM_DATA,
-  DEMO_PARTNERS_ACTIVE,
-  DEMO_PARTNERS_CONVERTED,
-  DEMO_PARTNERS_IN_CONVERSATION,
-  DEMO_PARTNERS_PIPELINE_CONVERTED,
-  DEMO_PARTNERS_SUBMITTED,
-  DEMO_PARTNERS_TOTAL,
-  DEMO_PARTNERS_UNDER_REVIEW,
-  DEMO_PIPELINE_COUNTS,
-  DEMO_RECENT_ACTIVITY,
-} from "@/lib/referrals/demo-data";
-import {
-  deriveHeroStats,
-  deriveMomentumData,
-  derivePipelineCounts,
-  deriveRecentActivity,
-  getPartnersByStatus,
-} from "@/lib/referrals/derive-dashboard";
-import type { ActivityType, ReferralPartner } from "@/lib/mock/referral-history";
-import type { ReferralRow } from "@/lib/supabase/types";
-import { supabase } from "@/lib/supabase/client";
-import { formatRelativeTime } from "@/lib/utils/relative-time";
+import { MonthlyCalendar } from \"@/components/referral-history/MonthlyCalendar\";
+import { Card, CardContent, CardHeader, CardTitle } from \"@/components/ui/card\";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from \"@/components/ui/dialog\";
+import type { MondayItemBase, MondayStageKey } from \"@/lib/monday\";
+import type { ReferralRow } from \"@/lib/supabase/types\";
+import { supabase } from \"@/lib/supabase/client\";
 
-const DURATION_MS = 800;
+type ItemsByStage = Record<MondayStageKey, MondayItemBase[]>;
 
-function useCountUp(target: number, enabled: boolean): number {
-  const [value, setValue] = useState(0);
-  const startRef = useRef<number | null>(null);
+function createEmptyStageMap(): ItemsByStage {
+  return {
+    submitted: [],
+    scheduling_initial_call: [],
+    scheduling_demo: [],
+    demo_scheduled: [],
+    getting_3pl_rate_card: [],
+    getting_refurb_lines_set: [],
+    need_to_follow_up: [],
+    on_hold: [],
+    stuck: [],
+    done: [],
+  };
+}
+
+const STAGE_CONFIGS: { key: MondayStageKey; label: string; colorClass: string }[] = [
+  { key: \"submitted\", label: \"Submitted\", colorClass: \"bg-muted-foreground/50\" },
+  {
+    key: \"scheduling_initial_call\",
+    label: \"Scheduling Initial Call\",
+    colorClass: \"bg-yellow-400\",
+  },
+  { key: \"scheduling_demo\", label: \"Scheduling Demo\", colorClass: \"bg-orange-400\" },
+  { key: \"demo_scheduled\", label: \"Demo Scheduled\", colorClass: \"bg-purple-500\" },
+  {
+    key: \"getting_3pl_rate_card\",
+    label: \"Getting 3PL Rate Card\",
+    colorClass: \"bg-sky-500\",
+  },
+  {
+    key: \"getting_refurb_lines_set\",
+    label: \"Getting Refurb Lines Set\",
+    colorClass: \"bg-emerald-700\",
+  },
+  {
+    key: \"need_to_follow_up\",
+    label: \"Need to Follow Up\",
+    colorClass: \"bg-sky-300\",
+  },
+  { key: \"on_hold\", label: \"On Hold\", colorClass: \"bg-muted-foreground/60\" },
+  { key: \"stuck\", label: \"Stuck\", colorClass: \"bg-red-500\" },
+  { key: \"done\", label: \"Done\", colorClass: \"bg-lime-500\" },
+];
+
+type StageModalState = MondayStageKey | null;
+
+export default function ReferralHistoryPage() {
+  const { userId } = useAuth();
+  const [referrals, setReferrals] = useState<ReferralRow[]>([]);
+  const [loadingReferrals, setLoadingReferrals] = useState(true);
+
+  const [itemsByStage, setItemsByStage] = useState<ItemsByStage>(createEmptyStageMap);
+  const [loadingPipeline, setLoadingPipeline] = useState(true);
+  const [stageModal, setStageModal] = useState<StageModalState>(null);
 
   useEffect(() => {
-    if (!enabled || target <= 0) {
-      setValue(target);
+    if (!userId || !supabase) {
+      setLoadingReferrals(false);
       return;
     }
-    startRef.current = null;
-    setValue(0);
 
-    const step = (timestamp: number) => {
-      if (startRef.current === null) startRef.current = timestamp;
-      const elapsed = timestamp - startRef.current;
-      const progress = Math.min(elapsed / DURATION_MS, 1);
-      const easeOut = 1 - (1 - progress) ** 2;
-      const next = Math.round(easeOut * target);
-      setValue(next);
-      if (progress < 1) requestAnimationFrame(step);
+    (async () => {
+      const { data, error } = await supabase
+        .from(\"referrals\")
+        .select(\"*\")
+        .eq(\"user_id\", userId)
+        .order(\"created_at\", { ascending: false });
+
+      if (!error) {
+        setReferrals((data as ReferralRow[]) ?? []);
+      }
+      setLoadingReferrals(false);
+    })();
+  }, [userId]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await fetch(\"/api/monday/user-pipeline\");
+        if (!response.ok) {
+          setItemsByStage(createEmptyStageMap());
+          setLoadingPipeline(false);
+          return;
+        }
+        const data = (await response.json()) as { itemsByStage?: ItemsByStage };
+        if (data.itemsByStage) {
+          setItemsByStage(data.itemsByStage);
+        } else {
+          setItemsByStage(createEmptyStageMap());
+        }
+      } catch (error) {
+        console.error(\"Failed to load Monday pipeline\", error);
+        setItemsByStage(createEmptyStageMap());
+      } finally {
+        setLoadingPipeline(false);
+      }
+    })();
+  }, []);
+
+  const pipelineCounts = useMemo(() => {
+    const counts: Record<MondayStageKey, number> = {
+      submitted: 0,
+      scheduling_initial_call: 0,
+      scheduling_demo: 0,
+      demo_scheduled: 0,
+      getting_3pl_rate_card: 0,
+      getting_refurb_lines_set: 0,
+      need_to_follow_up: 0,
+      on_hold: 0,
+      stuck: 0,
+      done: 0,
     };
-    const id = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(id);
-  }, [target, enabled]);
 
-  return value;
-}
+    (Object.keys(itemsByStage) as MondayStageKey[]).forEach((key) => {
+      counts[key] = itemsByStage[key]?.length ?? 0;
+    });
 
-function formatDateReferred(date: Date): string {
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+    return counts;
+  }, [itemsByStage]);
 
-function PartnersModal({
-  open,
-  onOpenChange,
-  title,
-  partners,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  title: string;
-  partners: ReferralPartner[];
-}) {
+  const totalItems = useMemo(
+    () =>
+      (Object.keys(pipelineCounts) as MondayStageKey[]).reduce(
+        (sum, key) => sum + pipelineCounts[key],
+        0
+      ),
+    [pipelineCounts]
+  );
+
+  const potentialRewards = useMemo(() => {
+    const stuck = pipelineCounts.stuck ?? 0;
+    return Math.max(0, totalItems - stuck) * 5000;
+  }, [pipelineCounts.stuck, totalItems]);
+
+  const submissionDates = useMemo(
+    () => referrals.map((r) => new Date(r.created_at)),
+    [referrals]
+  );
+
+  const isLoading = loadingReferrals || loadingPipeline;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showClose className="max-h-[85vh] overflow-hidden flex flex-col">
+    <div className=\"space-y-6\">
+      <div>
+        <h1 className=\"text-2xl font-semibold tracking-tight text-foreground\">
+          Personal Dashboard
+        </h1>
+        <p className=\"mt-1 text-sm text-muted-foreground\">
+          Command center for your Nok intros – track every partner from first submission to done.
+        </p>
+      </div>
+
+      <Card className=\"bg-card/50\">
+        <CardHeader className=\"flex flex-row items-center justify-between pb-2\">
+          <div>
+            <CardTitle className=\"text-base\">Potential Rewards</CardTitle>
+            <p className=\"text-xs text-muted-foreground\">
+              Estimated upside based on all non-stuck referrals in your pipeline.
+            </p>
+          </div>
+          <div className=\"text-2xl font-bold tracking-tight\">
+            ${potentialRewards.toLocaleString()}
+          </div>
+        </CardHeader>
+      </Card>
+
+      <Card className=\"bg-card/50\">
+        <CardHeader>
+          <CardTitle className=\"text-base\">Pipeline Stages</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <p className=\"text-sm text-muted-foreground\">Loading your pipeline…</p>
+          ) : (
+            <div className=\"grid grid-cols-2 gap-3 md:grid-cols-5\">
+              {STAGE_CONFIGS.map(({ key, label, colorClass }) => {
+                const count = pipelineCounts[key] ?? 0;
+                return (
+                  <button
+                    key={key}
+                    type=\"button\"
+                    className=\"flex h-28 flex-col justify-between rounded-xl border border-border/70 bg-muted/10 p-3 text-left transition-colors hover:border-primary/60 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60\"
+                    onClick={() => count > 0 && setStageModal(key)}
+                    disabled={count === 0}
+                  >
+                    <div className=\"flex items-center justify-between gap-2 text-xs font-medium\">
+                      <span className=\"text-foreground\">{label}</span>
+                      <span
+                        className={`inline-flex size-2 shrink-0 rounded-full ${colorClass}`}
+                        aria-hidden
+                      />
+                    </div>
+                    <div className=\"mt-2\">
+                      <span className=\"text-2xl font-bold text-foreground\">
+                        {count}
+                      </span>
+                      <span className=\"ml-1 text-xs text-muted-foreground\">
+                        {count === 1 ? \"partner\" : \"partners\"}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <MonthlyCalendar dates={submissionDates} />
+
+      <StageModal
+        stage={stageModal}
+        onOpenChange={(open) => !open && setStageModal(null)}
+        itemsByStage={itemsByStage}
+      />
+    </div>
+  );
+}
+
+function StageModal({
+  stage,
+  onOpenChange,
+  itemsByStage,
+}: {
+  stage: MondayStageKey | null;
+  onOpenChange: (open: boolean) => void;
+  itemsByStage: ItemsByStage;
+}) {
+  if (!stage) return null;
+
+  const items = itemsByStage[stage] ?? [];
+
+  const config = STAGE_CONFIGS.find((s) => s.key === stage);
+  const title = config ? config.label : stage;
+
+  return (
+    <Dialog open={Boolean(stage)} onOpenChange={onOpenChange}>
+      <DialogContent showClose className=\"max-h-[85vh] flex flex-col overflow-hidden\">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <div className="overflow-auto rounded-xl border border-border/80">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border/80 bg-muted/30">
-                <th className="px-4 py-3 text-left font-medium text-foreground">Partner Name</th>
-                <th className="px-4 py-3 text-left font-medium text-foreground">Date Referred</th>
-                <th className="px-4 py-3 text-left font-medium text-foreground">Industry</th>
-              </tr>
-            </thead>
-            <tbody>
-              {partners.map((p, i) => (
-                <tr
-                  key={`${p.partnerName}-${i}`}
-                  className="border-b border-border/60 last:border-0"
-                >
-                  <td className="px-4 py-3 text-foreground">{p.partnerName}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {formatDateReferred(p.dateReferred)}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{p.industry}</td>
+        <div className=\"overflow-auto rounded-xl border border-border/80\">
+          {items.length === 0 ? (
+            <p className=\"p-4 text-sm text-muted-foreground\">No partners in this stage.</p>
+          ) : (
+            <table className=\"w-full text-sm\">
+              <thead>
+                <tr className=\"border-b border-border/80 bg-muted/30\">
+                  <th className=\"px-4 py-3 text-left font-medium text-foreground\">Company</th>
+                  <th className=\"px-4 py-3 text-left font-medium text-foreground\">Status</th>
+                  <th className=\"px-4 py-3 text-left font-medium text-foreground\">Created</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {items.map((item) => {
+                  const created = item.created_at ? new Date(item.created_at) : null;
+                  const createdLabel = created
+                    ? created.toLocaleDateString(\"en-US\", {
+                        month: \"short\",
+                        day: \"numeric\",
+                        year: \"numeric\",
+                      })
+                    : \"—\";
+
+                  return (
+                    <tr
+                      key={item.id}
+                      className=\"border-b border-border/60 last:border-0\"
+                    >
+                      <td className=\"px-4 py-3 text-foreground\">{item.name}</td>
+                      <td className=\"px-4 py-3 text-muted-foreground\">
+                        {item.statusLabel || \"Submitted\"}
+                      </td>
+                      <td className=\"px-4 py-3 text-muted-foreground\">{createdLabel}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </DialogContent>
     </Dialog>
   );
 }
 
-function getActivityDotColor(type: ActivityType): string {
-  switch (type) {
-    case "submitted":
-      return "bg-muted-foreground/60";
-    case "under_review":
-      return "bg-muted-foreground/80";
-    case "in_conversation":
-      return "bg-primary";
-    case "converted":
-      return "bg-emerald-500";
-    default:
-      return "bg-muted-foreground/60";
-  }
-}
-
-type ModalKind = "total" | "active" | "converted" | null;
-type PipelineStageKey = "submitted" | "under_review" | "in_conversation" | "converted";
-
-export default function ReferralHistoryPage() {
-  const { userId } = useAuth();
-  const [referrals, setReferrals] = useState<ReferralRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [openModal, setOpenModal] = useState<ModalKind>(null);
-  const [pipelineModal, setPipelineModal] = useState<PipelineStageKey | null>(null);
-
-  useEffect(() => {
-    if (!userId || !supabase) {
-      setLoading(false);
-      return;
-    }
-    (async () => {
-      const { data, error } = await supabase
-        .from("referrals")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-      if (!error) setReferrals((data as ReferralRow[]) ?? []);
-      setLoading(false);
-    })();
-  }, [userId]);
-
-  const isDemoMode = !loading && referrals.length === 0;
-  const heroStats = useMemo(
-    () => (isDemoMode ? DEMO_HERO_STATS : deriveHeroStats(referrals)),
-    [referrals, isDemoMode]
-  );
-  const pipelineCounts = useMemo(
-    () => (isDemoMode ? DEMO_PIPELINE_COUNTS : derivePipelineCounts(referrals)),
-    [referrals, isDemoMode]
-  );
-  const momentumData = useMemo(
-    () => (isDemoMode ? DEMO_MOMENTUM_DATA : deriveMomentumData(referrals)),
-    [referrals, isDemoMode]
-  );
-  const recentActivity = useMemo(
-    () => (isDemoMode ? DEMO_RECENT_ACTIVITY : deriveRecentActivity(referrals)),
-    [referrals, isDemoMode]
-  );
-  const totalReferrals = heroStats.totalReferrals;
-  const showEmptyState = !loading && totalReferrals === 0;
-
-  const totalDisplay = useCountUp(heroStats.totalReferrals, !showEmptyState);
-  const activeDisplay = useCountUp(heroStats.activeReferrals, !showEmptyState);
-  const convertedDisplay = useCountUp(heroStats.convertedPartners, !showEmptyState);
-
-  const partnersTotal = useMemo(
-    () => (isDemoMode ? DEMO_PARTNERS_TOTAL : getPartnersByStatus(referrals, "total")),
-    [referrals, isDemoMode]
-  );
-  const partnersActive = useMemo(
-    () => (isDemoMode ? DEMO_PARTNERS_ACTIVE : getPartnersByStatus(referrals, "active")),
-    [referrals, isDemoMode]
-  );
-  const partnersConverted = useMemo(
-    () => (isDemoMode ? DEMO_PARTNERS_CONVERTED : getPartnersByStatus(referrals, "converted")),
-    [referrals, isDemoMode]
-  );
-  const partnersSubmitted = useMemo(
-    () => (isDemoMode ? DEMO_PARTNERS_SUBMITTED : getPartnersByStatus(referrals, "submitted")),
-    [referrals, isDemoMode]
-  );
-  const partnersUnderReview = useMemo(
-    () =>
-      isDemoMode ? DEMO_PARTNERS_UNDER_REVIEW : getPartnersByStatus(referrals, "under_review"),
-    [referrals, isDemoMode]
-  );
-  const partnersInConversation = useMemo(
-    () =>
-      isDemoMode
-        ? DEMO_PARTNERS_IN_CONVERSATION
-        : getPartnersByStatus(referrals, "in_conversation"),
-    [referrals, isDemoMode]
-  );
-  const partnersConvertedPipeline = useMemo(
-    () =>
-      isDemoMode ? DEMO_PARTNERS_PIPELINE_CONVERTED : getPartnersByStatus(referrals, "converted"),
-    [referrals, isDemoMode]
-  );
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Personal Dashboard
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Track your referrals from submission to close — see status updates and key milestones.
-          </p>
-        </div>
-        <Card className="bg-card/50 flex flex-col items-center justify-center py-16">
-          <p className="text-muted-foreground">Loading your referrals...</p>
-        </Card>
-      </div>
-    );
-  }
-
-  if (showEmptyState && !isDemoMode) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Personal Dashboard
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Track your referrals from submission to close — see status updates and key milestones.
-          </p>
-        </div>
-        <Card className="bg-card/50 flex flex-col items-center justify-center py-16">
-          <p className="text-muted-foreground mb-6">No referrals yet</p>
-          <Button asChild>
-            <Link href="/dashboard/refer">Introduce your first partner</Link>
-          </Button>
-        </Card>
-      </div>
-    );
-  }
-
-  const pipelineTotal =
-    pipelineCounts.submitted +
-    pipelineCounts.underReview +
-    pipelineCounts.inConversation +
-    pipelineCounts.converted;
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Personal Dashboard
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Track your referrals from submission to close — see status updates and key milestones.
-        </p>
-        {isDemoMode && (
-          <p className="mt-1 text-xs text-muted-foreground/80">
-            Showing sample data. Introduce a partner to see your real referrals.
-          </p>
-        )}
-      </div>
-
-      {/* Hero stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card
-          role="button"
-          tabIndex={0}
-          className="bg-card/50 cursor-pointer transition-shadow hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg"
-          onClick={() => setOpenModal("total")}
-          onKeyDown={(e) => e.key === "Enter" && setOpenModal("total")}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <span className="text-sm font-medium text-muted-foreground">Total Referrals</span>
-            <Users className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold tracking-tight">{totalDisplay}</span>
-              {heroStats.totalReferralsChange && (
-                <span className="text-xs font-medium text-emerald-400">{heroStats.totalReferralsChange}</span>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card
-          role="button"
-          tabIndex={0}
-          className="bg-card/50 cursor-pointer transition-shadow hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg"
-          onClick={() => setOpenModal("active")}
-          onKeyDown={(e) => e.key === "Enter" && setOpenModal("active")}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <span className="text-sm font-medium text-muted-foreground">Active Referrals</span>
-            <Activity className="size-4 animate-pulse text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <span className="text-2xl font-bold tracking-tight">{activeDisplay}</span>
-            <p className="mt-1 text-xs text-muted-foreground">Current leads in progress.</p>
-          </CardContent>
-        </Card>
-
-        <Card
-          role="button"
-          tabIndex={0}
-          className="bg-card/50 cursor-pointer transition-shadow hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg"
-          onClick={() => setOpenModal("converted")}
-          onKeyDown={(e) => e.key === "Enter" && setOpenModal("converted")}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <span className="text-sm font-medium text-muted-foreground">Converted Partners</span>
-            <CheckCircle2 className="size-4 text-emerald-400" />
-          </CardHeader>
-          <CardContent>
-            <span className="text-2xl font-bold tracking-tight">{convertedDisplay}</span>
-            <p className="mt-1 text-xs text-muted-foreground">Successful closes.</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card/50 transition-shadow hover:-translate-y-0.5 hover:shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <span className="text-sm font-medium text-muted-foreground">Potential Rewards</span>
-            <DollarSign className="size-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <span className="text-2xl font-bold tracking-tight">${heroStats.potentialRewards}</span>
-            <p className="mt-1 text-xs text-muted-foreground">Estimated payout value.</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Drill-down modals */}
-      <PartnersModal
-        open={openModal === "total"}
-        onOpenChange={(open) => !open && setOpenModal(null)}
-        title="Total Referrals"
-        partners={partnersTotal}
-      />
-      <PartnersModal
-        open={openModal === "active"}
-        onOpenChange={(open) => !open && setOpenModal(null)}
-        title="Active Referrals"
-        partners={partnersActive}
-      />
-      <PartnersModal
-        open={openModal === "converted"}
-        onOpenChange={(open) => !open && setOpenModal(null)}
-        title="Converted Partners"
-        partners={partnersConverted}
-      />
-      <PartnersModal
-        open={pipelineModal === "submitted"}
-        onOpenChange={(open) => !open && setPipelineModal(null)}
-        title="Partners: Submitted"
-        partners={partnersSubmitted}
-      />
-      <PartnersModal
-        open={pipelineModal === "under_review"}
-        onOpenChange={(open) => !open && setPipelineModal(null)}
-        title="Partners: Under Review"
-        partners={partnersUnderReview}
-      />
-      <PartnersModal
-        open={pipelineModal === "in_conversation"}
-        onOpenChange={(open) => !open && setPipelineModal(null)}
-        title="Partners: In Conversation"
-        partners={partnersInConversation}
-      />
-      <PartnersModal
-        open={pipelineModal === "converted"}
-        onOpenChange={(open) => !open && setPipelineModal(null)}
-        title="Partners: Converted"
-        partners={partnersConvertedPipeline}
-      />
-
-      {/* Pipeline */}
-      <Card className="bg-card/50">
-        <CardHeader>
-          <CardTitle className="text-base">Pipeline</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                key: "submitted" as PipelineStageKey,
-                label: "Submitted",
-                count: pipelineCounts.submitted,
-                barClass: "bg-muted-foreground/40",
-              },
-              {
-                key: "under_review" as PipelineStageKey,
-                label: "Under Review",
-                count: pipelineCounts.underReview,
-                barClass: "bg-muted-foreground/60",
-              },
-              {
-                key: "in_conversation" as PipelineStageKey,
-                label: "In Conversation",
-                count: pipelineCounts.inConversation,
-                barClass: "bg-primary",
-              },
-              {
-                key: "converted" as PipelineStageKey,
-                label: "Converted",
-                count: pipelineCounts.converted,
-                barClass: "bg-emerald-500",
-              },
-            ].map(({ key, label, count, barClass }) => (
-              <button
-                key={key}
-                type="button"
-                className="w-full cursor-pointer space-y-2 rounded-xl border border-transparent p-3 text-left transition-colors hover:border-primary/50 hover:bg-white/[0.04]"
-                onClick={() => setPipelineModal(key)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setPipelineModal(key);
-                  }
-                }}
-              >
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-foreground">{label}</span>
-                  <span className="text-muted-foreground">{count} Partners</span>
-                </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-muted/50">
-                  <div
-                    className={`h-full rounded-full transition-all ${barClass}`}
-                    style={{
-                      width: pipelineTotal > 0 ? `${(count / pipelineTotal) * 100}%` : "0%",
-                    }}
-                  />
-                </div>
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Two-column: Momentum + Recent Activity */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
-        <Card className="bg-card/50">
-          <CardHeader>
-            <CardTitle className="text-base">Referral Submissions</CardTitle>
-            <p className="text-sm text-muted-foreground">Last 6 months</p>
-          </CardHeader>
-          <CardContent>
-            <MomentumChart data={momentumData} />
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card/50">
-          <CardHeader>
-            <CardTitle className="text-base">Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-4">
-              {recentActivity.map((item) => (
-                <li key={item.id} className="flex gap-3">
-                  <span
-                    className={`mt-1.5 size-2 shrink-0 rounded-full ${getActivityDotColor(item.type)}`}
-                  />
-                  <div className="min-w-0 flex-1 text-sm">
-                    <span className="text-foreground">{item.label}</span>
-                    <span className="text-muted-foreground"> • {formatRelativeTime(item.timestamp)}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}

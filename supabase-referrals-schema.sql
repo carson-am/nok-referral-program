@@ -7,11 +7,9 @@ create table if not exists public.referrals (
   full_name text not null,
   partner_name text not null,
   contact_email text not null,
-  job_title text not null,
-  company_website text not null,
-  phone text not null,
-  relationship text not null,
   status text not null default 'submitted' check (status in ('submitted', 'under_review', 'in_conversation', 'converted')),
+  monday_item_id text,
+  monday_status text,
   created_at timestamptz not null default now()
 );
 

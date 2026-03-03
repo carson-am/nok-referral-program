@@ -11,6 +11,8 @@ export type ReferralRow = {
   partner_name: string;
   contact_email: string;
   status: ReferralStatus;
+   monday_item_id?: string | null;
+   monday_status?: string | null;
   created_at: string;
 };
 
@@ -20,6 +22,8 @@ export type ReferralInsert = {
   partner_name: string;
   contact_email: string;
   status?: ReferralStatus;
+  monday_item_id?: string | null;
+  monday_status?: string | null;
   id?: string;
   created_at?: string;
 };
