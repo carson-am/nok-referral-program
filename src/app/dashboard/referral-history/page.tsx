@@ -1,7 +1,7 @@
-\"use client\";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 
 import { MonthlyCalendar } from "@/components/referral-history/MonthlyCalendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
