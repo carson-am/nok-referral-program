@@ -17,3 +17,13 @@ create table if not exists public.referrals (
 
 create index if not exists idx_referrals_user_id on public.referrals (user_id);
 create index if not exists idx_referrals_created_at on public.referrals (created_at desc);
+
+-- User signatures (agreement acceptance at sign-up)
+create table if not exists public.user_signatures (
+  id uuid primary key default gen_random_uuid(),
+  user_id text not null unique,
+  full_name text not null,
+  company_name text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_user_signatures_user_id on public.user_signatures (user_id);

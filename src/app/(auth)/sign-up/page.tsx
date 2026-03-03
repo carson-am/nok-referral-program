@@ -11,6 +11,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +29,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { fillAgreementPlaceholders } from "@/lib/referral-agreement-text";
 
 const signUpSchema = z
   .object({
@@ -55,17 +58,36 @@ const defaultValues: SignUpValues = {
 export default function SignUpPage() {
   const router = useRouter();
   const { isLoaded, signUp, setActive } = useSignUp();
+  const [step, setStep] = useState<1 | 2>(1);
+  const [agreementAccepted, setAgreementAccepted] = useState(false);
+  const [digitalSignature, setDigitalSignature] = useState("");
   const [verificationOpen, setVerificationOpen] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   const form = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues,
+    mode: "onChange",
   });
 
-  async function onSubmit(values: SignUpValues) {
-    if (!isLoaded || !signUp) return;
+  const fullName = form.watch("fullName");
+  const canCreateAccount =
+    agreementAccepted &&
+    digitalSignature.trim().toLowerCase() === fullName.trim().toLowerCase();
+
+  function handleContinueToAgreement() {
+    form.handleSubmit(
+      () => setStep(2),
+      () => {},
+    )();
+  }
+
+  async function handleCreateAccount() {
+    if (!isLoaded || !signUp || !canCreateAccount) return;
+    const values = form.getValues();
+    setIsCreating(true);
     try {
       const nameParts = values.fullName.trim().split(/\s+/);
       const firstName = nameParts[0] ?? values.fullName;
@@ -92,6 +114,8 @@ export default function SignUpPage() {
           ? (err as { errors: { message: string }[] }).errors?.[0]?.message
           : "Could not create account. Please try again.";
       toast.error(message);
+    } finally {
+      setIsCreating(false);
     }
   }
 
@@ -99,6 +123,7 @@ export default function SignUpPage() {
     e.preventDefault();
     if (!isLoaded || !signUp || !setActive || !verificationCode.trim()) return;
     setIsVerifying(true);
+    const values = form.getValues();
     try {
       const signUpAttempt = await signUp.attemptEmailAddressVerification({
         code: verificationCode.trim(),
@@ -106,11 +131,24 @@ export default function SignUpPage() {
       if (signUpAttempt.status === "complete") {
         await setActive({
           session: signUpAttempt.createdSessionId,
-          navigate: () => router.push("/dashboard/referral-history"),
+          navigate: () => {},
         });
+        const res = await fetch("/api/save-signature", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            full_name: values.fullName.trim(),
+            company_name: values.companyName.trim(),
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          toast.error(data.error || "Could not save agreement.");
+        }
         toast.success("Account created successfully! Welcome to Nok.");
         setVerificationOpen(false);
         setVerificationCode("");
+        router.push("/dashboard/referral-history");
       } else {
         toast.error("Verification could not be completed. Please try again.");
       }
@@ -125,118 +163,186 @@ export default function SignUpPage() {
     }
   }
 
+  const agreementText = fillAgreementPlaceholders(
+    form.watch("fullName") || "",
+    form.watch("companyName") || "",
+  );
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(45,107,255,0.35),rgba(10,22,51,0)_55%)]" />
       <div className="relative mx-auto flex min-h-screen w-full max-w-3xl items-center px-6 py-12">
-        <Card className="w-full bg-card/80 backdrop-blur shadow-[0_0_40px_rgba(45,107,255,0.15)]">
+        <Card className="w-full rounded-xl bg-card/80 shadow-[0_0_40px_rgba(45,107,255,0.15)] backdrop-blur">
           <CardHeader className="text-center">
             <CardTitle>Create Your Profile</CardTitle>
             <CardDescription>
-              Enter your details to get started with your account.
+              {step === 1
+                ? "Enter your details to get started with your account."
+                : "Review and accept the Referral Agreement to complete registration."}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Form {...form}>
-              <form
-                className="grid gap-5"
-                onSubmit={form.handleSubmit(onSubmit)}
-              >
-                <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Full Name <span className="text-destructive">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input autoComplete="name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Email <span className="text-destructive">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input type="email" autoComplete="email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Password <span className="text-destructive">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input type="password" autoComplete="new-password" {...field} />
-                      </FormControl>
-                      <FormDescription>Must be at least 8 characters</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Confirm Password <span className="text-destructive">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input type="password" autoComplete="new-password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="companyName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Company Name <span className="text-destructive">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
-                  <Link className="text-sm text-muted-foreground hover:text-foreground" href="/">
-                    ← Back
-                  </Link>
-                  <Button
-                    type="submit"
-                    className="sm:w-auto"
-                    disabled={!isLoaded || form.formState.isSubmitting}
+            {step === 1 ? (
+              <Form {...form}>
+                <form className="grid gap-5">
+                  <FormField
+                    control={form.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Full Name <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input className="rounded-xl" autoComplete="name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Email <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input className="rounded-xl" type="email" autoComplete="email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Password <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input className="rounded-xl" type="password" autoComplete="new-password" {...field} />
+                        </FormControl>
+                        <FormDescription>Must be at least 8 characters</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Confirm Password <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input className="rounded-xl" type="password" autoComplete="new-password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="companyName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Company Name <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input className="rounded-xl" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
+                    <Link className="text-sm text-muted-foreground hover:text-foreground" href="/">
+                      ← Back
+                    </Link>
+                    <Button
+                      type="button"
+                      className="rounded-xl sm:w-auto"
+                      disabled={!form.formState.isValid}
+                      onClick={handleContinueToAgreement}
+                    >
+                      Continue to Agreement
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            ) : (
+              <div className="space-y-5">
+                <div>
+                  <a
+                    href="/referral-agreement.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-primary hover:underline"
                   >
-                    {form.formState.isSubmitting ? "Creating Account..." : "Create Account"}
+                    Download PDF copy
+                  </a>
+                </div>
+                <ScrollArea className="h-[300px] w-full rounded-xl border border-border/70 bg-muted/20 p-4">
+                  <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">
+                    {agreementText}
+                  </pre>
+                </ScrollArea>
+                <p className="text-xs italic text-muted-foreground">
+                  Note: This is our standard Referral Agreement used for all partners to ensure program
+                  simplicity and operational speed. These terms are non-negotiable.
+                </p>
+                <div className="flex flex-row items-start gap-3 space-y-0 rounded-xl border border-border/70 bg-muted/20 p-4">
+                  <Checkbox
+                    id="agreement"
+                    checked={agreementAccepted}
+                    onCheckedChange={(checked) => setAgreementAccepted(checked === true)}
+                    className="rounded"
+                  />
+                  <label
+                    htmlFor="agreement"
+                    className="cursor-pointer text-sm font-normal leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    I agree to the terms and conditions of the Nok Referral Agreement.
+                  </label>
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="digital-signature" className="text-sm font-medium text-foreground">
+                    Digital Signature
+                  </label>
+                  <Input
+                    id="digital-signature"
+                    className="rounded-xl"
+                    placeholder="Type your full name to sign"
+                    value={digitalSignature}
+                    onChange={(e) => setDigitalSignature(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-xl"
+                    onClick={() => setStep(1)}
+                  >
+                    Back to Information
+                  </Button>
+                  <Button
+                    type="button"
+                    className="rounded-xl sm:w-auto"
+                    disabled={!canCreateAccount || isCreating}
+                    onClick={handleCreateAccount}
+                  >
+                    {isCreating ? "Creating Account..." : "Create Account"}
                   </Button>
                 </div>
-              </form>
-            </Form>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
