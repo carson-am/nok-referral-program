@@ -57,7 +57,7 @@ function AccordionContent({
       className={cn("overflow-hidden text-sm", className)}
       {...props}
     >
-      <div className="pb-4 pt-0 text-muted-foreground leading-relaxed">{children}</div>
+      <div className="px-4 py-4 text-muted-foreground leading-relaxed">{children}</div>
     </AccordionPrimitive.Content>
   );
 }
