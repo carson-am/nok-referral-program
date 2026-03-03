@@ -85,7 +85,7 @@ export default function IntroducePartnerPage() {
           Introduce a Partner
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Submit your referral and we&apos;ll take it from here. You&apos;ll be redirected back to your Personal Dashboard while we review the details.
+          Submit your referral and send your warm introduction. You&apos;ll be redirected back to your Personal Dashboard after submission.
         </p>
       </div>
 
