@@ -27,3 +27,6 @@ create table if not exists public.user_signatures (
   created_at timestamptz not null default now()
 );
 create index if not exists idx_user_signatures_user_id on public.user_signatures (user_id);
+
+-- If user_signatures was created without UNIQUE on user_id, run this so upsert(onConflict: 'user_id') works:
+-- alter table public.user_signatures add constraint user_signatures_user_id_key unique (user_id);

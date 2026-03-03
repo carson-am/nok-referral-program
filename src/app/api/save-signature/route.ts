@@ -16,20 +16,37 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const { full_name, company_name } = body;
-  if (typeof full_name !== "string" || typeof company_name !== "string" || !full_name.trim() || !company_name.trim()) {
+  const fullNameTrimmed = full_name.trim();
+  const companyNameTrimmed = company_name.trim();
+  if (typeof full_name !== "string" || typeof company_name !== "string" || !fullNameTrimmed || !companyNameTrimmed) {
     return NextResponse.json({ error: "full_name and company_name required" }, { status: 400 });
   }
-  const { error } = await supabase.from("user_signatures").upsert(
+
+  const { error: upsertError } = await supabase.from("user_signatures").upsert(
     {
       user_id: userId,
-      full_name: full_name.trim(),
-      company_name: company_name.trim(),
+      full_name: fullNameTrimmed,
+      company_name: companyNameTrimmed,
     },
     { onConflict: "user_id" },
   );
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (upsertError) {
+    const isConflictError =
+      upsertError.code === "23505" ||
+      /duplicate|on conflict|unique constraint/i.test(upsertError.message);
+    if (isConflictError) {
+      const { error: updateError } = await supabase
+        .from("user_signatures")
+        .update({ full_name: fullNameTrimmed, company_name: companyNameTrimmed })
+        .eq("user_id", userId);
+      if (updateError) {
+        return NextResponse.json({ error: updateError.message }, { status: 500 });
+      }
+      return NextResponse.json({ ok: true });
+    }
+    return NextResponse.json({ error: upsertError.message }, { status: 500 });
   }
+
   return NextResponse.json({ ok: true });
 }
