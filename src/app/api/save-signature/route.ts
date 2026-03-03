@@ -10,23 +10,27 @@ export async function POST(req: Request) {
   if (!supabase) {
     return NextResponse.json({ error: "Database not configured" }, { status: 503 });
   }
-  let body: { full_name: string; company_name: string };
+  let body: { full_name?: unknown; company_name?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const fullNameTrimmed = full_name.trim();
-  const companyNameTrimmed = company_name.trim();
-  if (typeof full_name !== "string" || typeof company_name !== "string" || !fullNameTrimmed || !companyNameTrimmed) {
+  const { full_name: rawFullName, company_name: rawCompanyName } = body;
+  if (typeof rawFullName !== "string" || typeof rawCompanyName !== "string") {
+    return NextResponse.json({ error: "full_name and company_name required" }, { status: 400 });
+  }
+  const full_name = rawFullName.trim();
+  const company_name = rawCompanyName.trim();
+  if (!full_name || !company_name) {
     return NextResponse.json({ error: "full_name and company_name required" }, { status: 400 });
   }
 
   const { error: upsertError } = await supabase.from("user_signatures").upsert(
     {
       user_id: userId,
-      full_name: fullNameTrimmed,
-      company_name: companyNameTrimmed,
+      full_name,
+      company_name,
     },
     { onConflict: "user_id" },
   );
@@ -38,7 +42,7 @@ export async function POST(req: Request) {
     if (isConflictError) {
       const { error: updateError } = await supabase
         .from("user_signatures")
-        .update({ full_name: fullNameTrimmed, company_name: companyNameTrimmed })
+        .update({ full_name, company_name })
         .eq("user_id", userId);
       if (updateError) {
         return NextResponse.json({ error: updateError.message }, { status: 500 });
