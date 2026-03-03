@@ -44,7 +44,7 @@ function createEmptyStageMap(): ItemsByStage {
 
 export async function GET() {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
 
     if (!userId) {
       return NextResponse.json({ itemsByStage: createEmptyStageMap() }, { status: 200 });
