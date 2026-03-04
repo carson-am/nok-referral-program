@@ -287,27 +287,30 @@ export default function ReferralHistoryPage() {
         </CardContent>
       </Card>
 
-      <div className="flex flex-col gap-6 md:flex-row md:flex-nowrap md:items-stretch">
-        <div className="md:w-[45%] md:flex-shrink-0 md:self-start">
-          <MonthlyCalendar dates={submissionDates} compact className="border border-border/70 transition-colors hover:border-primary/60" />
+      <div className="flex flex-col gap-6 md:flex-row md:flex-nowrap md:min-h-[420px] md:items-stretch">
+        <div className="md:w-[45%] md:flex-shrink-0 md:min-h-[420px]">
+          <MonthlyCalendar dates={submissionDates} compact className="h-full border border-border/70 transition-colors hover:border-primary/60" />
         </div>
-        <Card className="flex min-h-0 flex-1 flex-col border border-border/70 bg-card/50 rounded-[0.75rem] transition-colors hover:border-primary/60 md:h-0 md:min-h-0 md:self-stretch">
+        <Card className="flex min-h-[400px] flex-1 flex-col border border-border/70 bg-card/50 rounded-[0.75rem] transition-colors hover:border-primary/60 md:min-h-[420px]">
           <CardHeader className="shrink-0 pb-2">
             <CardTitle className="text-base text-center md:text-left">Recent Activity</CardTitle>
           </CardHeader>
-          <CardContent className="min-h-0 flex-1 overflow-hidden pt-0">
+          <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-0">
             {loadingActivity ? (
               <p className="text-sm text-muted-foreground">Loading activity…</p>
             ) : recentActivity.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No recent stage changes.</p>
+              <p className="text-sm text-muted-foreground">No recent activity to display.</p>
             ) : (
               <div
-                className="h-full min-h-0 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:min-h-[2rem]"
-                style={{ scrollbarGutter: "stable" }}
+                className="flex-1 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:min-h-[2rem]"
+                style={{ maxHeight: "350px", scrollbarGutter: "stable" }}
               >
                 <ul className="space-y-3 text-sm">
                   {recentActivity.map((a) => (
-                    <li key={a.id} className="rounded-[0.75rem] border border-border/60 bg-muted/10 px-3 py-2">
+                    <li
+                      key={a.id}
+                      className="rounded-[0.75rem] border border-border/60 bg-muted/10 px-3 py-2 transition-colors hover:border-primary/50"
+                    >
                       {a.from_status != null && a.from_status !== "" ? (
                         <span className="text-foreground">
                           <strong>{a.partner_name}</strong> moved from &quot;{a.from_status}&quot; to &quot;{a.to_status}&quot;
