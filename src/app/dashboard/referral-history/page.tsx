@@ -14,7 +14,6 @@ type ItemsByStage = Record<MondayStageKey, MondayItemBase[]>;
 
 function createEmptyStageMap(): ItemsByStage {
   return {
-    submitted: [],
     scheduling_initial_call: [],
     scheduling_demo: [],
     demo_scheduled: [],
@@ -28,7 +27,6 @@ function createEmptyStageMap(): ItemsByStage {
 }
 
 const STAGE_CONFIGS: { key: MondayStageKey; label: string; colorClass: string }[] = [
-  { key: "submitted", label: "Submitted", colorClass: "bg-muted-foreground/50" },
   {
     key: "scheduling_initial_call",
     label: "Scheduling Initial Call",
@@ -113,7 +111,6 @@ export default function ReferralHistoryPage() {
 
   const pipelineCounts = useMemo(() => {
     const counts: Record<MondayStageKey, number> = {
-      submitted: 0,
       scheduling_initial_call: 0,
       scheduling_demo: 0,
       demo_scheduled: 0,
@@ -283,7 +280,7 @@ function StageModal({
                     >
                       <td className="px-4 py-3 text-foreground">{item.name}</td>
                       <td className="px-4 py-3 text-muted-foreground">
-                        {item.statusLabel || "Submitted"}
+                        {item.statusLabel || "No status yet"}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{createdLabel}</td>
                     </tr>

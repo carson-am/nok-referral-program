@@ -17,10 +17,8 @@ type MondayItem = {
   column_values: MondayColumnValue[];
 };
 
-type MondayBoardResponse = {
-  boards: Array<{
-    items: MondayItem[];
-  }>;
+type QueryResponse = {
+  items_by_column_values: MondayItem[];
 };
 
 type ItemsByStage = Record<MondayStageKey, MondayItemBase[]>;
@@ -31,7 +29,6 @@ const STATUS_COLUMN_ID = "status";
 
 function createEmptyStageMap(): ItemsByStage {
   return {
-    submitted: [],
     scheduling_initial_call: [],
     scheduling_demo: [],
     demo_scheduled: [],
@@ -67,19 +64,19 @@ export async function GET() {
 
     const client = createMondayClient();
 
-    type QueryResponse = MondayBoardResponse;
-
     const query = `
-      query UserPipeline($boardId: [ID!]!) {
-        boards(ids: $boardId) {
-          items {
+      query UserPipeline($boardId: ID!, $email: String!) {
+        items_by_column_values(
+          board_id: $boardId
+          column_id: "${REFERRAL_EMAIL_COLUMN_ID}"
+          column_value: $email
+        ) {
+          id
+          name
+          created_at
+          column_values {
             id
-            name
-            created_at
-            column_values {
-              id
-              text
-            }
+            text
           }
         }
       }
@@ -87,33 +84,21 @@ export async function GET() {
 
     const data = await client.mondayFetch<QueryResponse>({
       query,
-      variables: { boardId: MONDAY_BOARD_ID },
+      variables: { boardId: MONDAY_BOARD_ID, email: userEmail },
     });
 
     console.log("Monday API Response Data:", JSON.stringify(data));
 
-    if (!data || !data.boards?.length) {
+    if (!data || !data.items_by_column_values) {
       return NextResponse.json({ itemsByStage: createEmptyStageMap() }, { status: 200 });
     }
 
-    const board = data.boards[0];
     const itemsByStage: ItemsByStage = createEmptyStageMap();
 
-    const normalizedUserEmail = userEmail.trim().toLowerCase();
-
-    for (const item of board.items ?? []) {
-      const emailColumn = item.column_values.find(
-        (cv) => cv.id === REFERRAL_EMAIL_COLUMN_ID
-      );
+    for (const item of data.items_by_column_values ?? []) {
       const statusColumn = item.column_values.find(
         (cv) => cv.id === STATUS_COLUMN_ID
       );
-
-      const itemEmail = (emailColumn?.text ?? "").trim().toLowerCase();
-
-      if (!itemEmail || itemEmail !== normalizedUserEmail) {
-        continue;
-      }
 
       const statusLabel = statusColumn?.text ?? null;
       const stage = getStageFromStatus(statusLabel);

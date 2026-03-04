@@ -50,7 +50,6 @@ export function createMondayClient() {
 }
 
 export type MondayStageKey =
-  | "submitted"
   | "scheduling_initial_call"
   | "scheduling_demo"
   | "demo_scheduled"
@@ -75,7 +74,8 @@ function normalizeStatusLabel(label?: string | null): string {
 export function getStageFromStatus(label?: string | null): MondayStageKey {
   const normalized = normalizeStatusLabel(label);
 
-  if (!normalized) return "submitted";
+  // If there is no status yet, treat it as "Scheduling Initial Call"
+  if (!normalized) return "scheduling_initial_call";
 
   if (normalized.includes("scheduling initial")) return "scheduling_initial_call";
   if (normalized.includes("scheduling demo")) return "scheduling_demo";
@@ -88,15 +88,14 @@ export function getStageFromStatus(label?: string | null): MondayStageKey {
   if (normalized.includes("stuck")) return "stuck";
   if (normalized.includes("done") || normalized.includes("complete")) return "done";
 
-  // Fallback for any unmapped label – treat as submitted/initial.
-  return "submitted";
+  // Fallback for any unmapped label – treat as initial scheduling.
+  return "scheduling_initial_call";
 }
 
 export function groupItemsByStage<T extends MondayItemBase>(
   items: T[]
 ): Record<MondayStageKey, T[]> {
   const result: Record<MondayStageKey, T[]> = {
-    submitted: [],
     scheduling_initial_call: [],
     scheduling_demo: [],
     demo_scheduled: [],
