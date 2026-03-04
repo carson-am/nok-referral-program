@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
@@ -18,7 +18,11 @@ type MondayItem = {
 };
 
 type QueryResponse = {
-  items_by_column_values: MondayItem[];
+  boards: Array<{
+    items_page: {
+      items: MondayItem[];
+    } | null;
+  }>;
 };
 
 type ItemsByStage = Record<MondayStageKey, MondayItemBase[]>;
@@ -65,18 +69,23 @@ export async function GET() {
     const client = createMondayClient();
 
     const query = `
-      query UserPipeline($boardId: ID!, $email: String!) {
-        items_by_column_values(
-          board_id: $boardId
-          column_id: "${REFERRAL_EMAIL_COLUMN_ID}"
-          column_value: $email
-        ) {
-          id
-          name
-          created_at
-          column_values {
-            id
-            text
+      query UserPipeline($boardIds: [ID!], $email: String!) {
+        boards (ids: $boardIds) {
+          items_page (query_params: {
+            rules: [{
+              column_id: "${REFERRAL_EMAIL_COLUMN_ID}", 
+              compare_value: [$email], 
+              operator: any_of
+            }]
+          }) {
+            items {
+              id
+              name
+              created_at
+              column_values (ids: ["${STATUS_COLUMN_ID}"]) {
+                text
+              }
+            }
           }
         }
       }
@@ -84,21 +93,22 @@ export async function GET() {
 
     const data = await client.mondayFetch<QueryResponse>({
       query,
-      variables: { boardId: MONDAY_BOARD_ID, email: userEmail },
+      variables: { boardIds: [MONDAY_BOARD_ID], email: userEmail },
     });
 
     console.log("Monday API Response Data:", JSON.stringify(data));
 
-    if (!data || !data.items_by_column_values) {
+    if (!data || !data.boards?.length || !data.boards[0].items_page) {
       return NextResponse.json({ itemsByStage: createEmptyStageMap() }, { status: 200 });
     }
 
+    const items = data.boards[0].items_page.items ?? [];
+    console.log("Found " + items.length + " items for " + userEmail);
+
     const itemsByStage: ItemsByStage = createEmptyStageMap();
 
-    for (const item of data.items_by_column_values ?? []) {
-      const statusColumn = item.column_values.find(
-        (cv) => cv.id === STATUS_COLUMN_ID
-      );
+    for (const item of items) {
+      const statusColumn = item.column_values[0];
 
       const statusLabel = statusColumn?.text ?? null;
       const stage = getStageFromStatus(statusLabel);

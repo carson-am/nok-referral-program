@@ -74,8 +74,8 @@ function normalizeStatusLabel(label?: string | null): string {
 export function getStageFromStatus(label?: string | null): MondayStageKey {
   const normalized = normalizeStatusLabel(label);
 
-  // If there is no status yet, treat it as "Scheduling Initial Call"
-  if (!normalized) return "scheduling_initial_call";
+  // If there is no status yet or it's explicitly "submitted", treat it as "Scheduling Initial Call"
+  if (!normalized || normalized === "submitted") return "scheduling_initial_call";
 
   if (normalized.includes("scheduling initial")) return "scheduling_initial_call";
   if (normalized.includes("scheduling demo")) return "scheduling_demo";
