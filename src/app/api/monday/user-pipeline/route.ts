@@ -70,8 +70,10 @@ export async function GET() {
       query UserPipeline($boardId: ID!, $email: String!) {
         items_page_by_column_values(
           board_id: $boardId
-          column_id: "${REFERRAL_EMAIL_COLUMN_ID}"
-          column_value: $email
+          columns: [{
+            column_id: "${REFERRAL_EMAIL_COLUMN_ID}"
+            column_values: [$email]
+          }]
         ) {
           items {
             id
