@@ -6,7 +6,6 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { MonthlyCalendar } from "@/components/referral-history/MonthlyCalendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import type { MondayItemBase, MondayStageKey } from "@/lib/monday";
 import type { ReferralActivityRow, ReferralRow } from "@/lib/supabase/types";
 import { supabase } from "@/lib/supabase/client";
@@ -288,11 +287,11 @@ export default function ReferralHistoryPage() {
         </CardContent>
       </Card>
 
-      <div className="grid min-h-[280px] grid-cols-1 gap-6 md:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)] md:items-stretch">
-        <div className="h-full min-h-0">
-          <MonthlyCalendar dates={submissionDates} compact className="h-full" />
+      <div className="flex flex-col gap-6 md:flex-row md:flex-nowrap md:items-stretch">
+        <div className="md:w-[45%] md:flex-shrink-0 md:self-start">
+          <MonthlyCalendar dates={submissionDates} compact className="border border-border/70 transition-colors hover:border-primary/60" />
         </div>
-        <Card className="flex h-full min-h-0 flex-col bg-card/50 rounded-[0.75rem]">
+        <Card className="flex min-h-0 flex-1 flex-col border border-border/70 bg-card/50 rounded-[0.75rem] transition-colors hover:border-primary/60 md:h-0 md:min-h-0 md:self-stretch">
           <CardHeader className="shrink-0 pb-2">
             <CardTitle className="text-base text-center md:text-left">Recent Activity</CardTitle>
           </CardHeader>
@@ -302,8 +301,11 @@ export default function ReferralHistoryPage() {
             ) : recentActivity.length === 0 ? (
               <p className="text-sm text-muted-foreground">No recent stage changes.</p>
             ) : (
-              <ScrollArea className="h-full min-h-0 [&_.bg-border]:bg-primary/40 [&>[data-radix-scroll-area-viewport]]:max-h-full">
-                <ul className="space-y-3 pr-2 text-sm">
+              <div
+                className="h-full min-h-0 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:min-h-[2rem]"
+                style={{ scrollbarGutter: "stable" }}
+              >
+                <ul className="space-y-3 text-sm">
                   {recentActivity.map((a) => (
                     <li key={a.id} className="rounded-[0.75rem] border border-border/60 bg-muted/10 px-3 py-2">
                       {a.from_status != null && a.from_status !== "" ? (
@@ -323,7 +325,7 @@ export default function ReferralHistoryPage() {
                     </li>
                   ))}
                 </ul>
-              </ScrollArea>
+              </div>
             )}
           </CardContent>
         </Card>
