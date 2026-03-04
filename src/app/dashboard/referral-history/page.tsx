@@ -198,12 +198,14 @@ export default function ReferralHistoryPage() {
       </div>
 
       <Card className="bg-card/50 rounded-[0.75rem]">
-        <CardHeader className="flex flex-col items-center justify-center gap-1 pb-2 text-center">
-          <CardTitle className="text-base">Potential Rewards</CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Estimated upside based on all non-stuck referrals in your pipeline.
-          </p>
-          <div className="text-2xl font-bold tracking-tight">
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-4 py-4">
+          <div className="flex flex-col gap-0.5 text-left">
+            <CardTitle className="text-base">Potential Rewards</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Estimated upside based on all non-stuck referrals in your pipeline.
+            </p>
+          </div>
+          <div className="text-2xl font-bold tracking-tight shrink-0">
             ${potentialRewards.toLocaleString()}
           </div>
         </CardHeader>
@@ -217,36 +219,69 @@ export default function ReferralHistoryPage() {
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading your pipeline…</p>
           ) : (
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-              {STAGE_CONFIGS.map(({ key, label, colorClass }, index) => {
-                const count = pipelineCounts[key] ?? 0;
-                const isFirstOfBottomRow = index === 5;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    className={`flex h-28 flex-col justify-between rounded-[0.75rem] border border-border/70 bg-muted/10 p-3 text-left transition-colors hover:border-primary/60 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 ${isFirstOfBottomRow ? "md:col-start-2" : ""}`}
-                    onClick={() => count > 0 && setStageModal(key)}
-                    disabled={count === 0}
-                  >
-                    <div className="flex items-center justify-between gap-2 text-xs font-medium">
-                      <span className="text-foreground">{label}</span>
-                      <span
-                        className={`inline-flex size-2 shrink-0 rounded-full ${colorClass}`}
-                        aria-hidden
-                      />
-                    </div>
-                    <div className="mt-2">
-                      <span className="text-2xl font-bold text-foreground">
-                        {count}
-                      </span>
-                      <span className="ml-1 text-xs text-muted-foreground">
-                        {count === 1 ? "partner" : "partners"}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
+            <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                {STAGE_CONFIGS.slice(0, 5).map(({ key, label, colorClass }) => {
+                  const count = pipelineCounts[key] ?? 0;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      className="flex h-28 flex-col justify-between rounded-[0.75rem] border border-border/70 bg-muted/10 p-3 text-left transition-colors hover:border-primary/60 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                      onClick={() => count > 0 && setStageModal(key)}
+                      disabled={count === 0}
+                    >
+                      <div className="flex items-center justify-between gap-2 text-xs font-medium">
+                        <span className="text-foreground">{label}</span>
+                        <span
+                          className={`inline-flex size-2 shrink-0 rounded-full ${colorClass}`}
+                          aria-hidden
+                        />
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-2xl font-bold text-foreground">
+                          {count}
+                        </span>
+                        <span className="ml-1 text-xs text-muted-foreground">
+                          {count === 1 ? "partner" : "partners"}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex justify-center">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {STAGE_CONFIGS.slice(5, 9).map(({ key, label, colorClass }) => {
+                    const count = pipelineCounts[key] ?? 0;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        className="flex h-28 flex-col justify-between rounded-[0.75rem] border border-border/70 bg-muted/10 p-3 text-left transition-colors hover:border-primary/60 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                        onClick={() => count > 0 && setStageModal(key)}
+                        disabled={count === 0}
+                      >
+                        <div className="flex items-center justify-between gap-2 text-xs font-medium">
+                          <span className="text-foreground">{label}</span>
+                          <span
+                            className={`inline-flex size-2 shrink-0 rounded-full ${colorClass}`}
+                            aria-hidden
+                          />
+                        </div>
+                        <div className="mt-2">
+                          <span className="text-2xl font-bold text-foreground">
+                            {count}
+                          </span>
+                          <span className="ml-1 text-xs text-muted-foreground">
+                            {count === 1 ? "partner" : "partners"}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
         </CardContent>
