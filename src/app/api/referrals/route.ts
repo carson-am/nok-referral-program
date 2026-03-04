@@ -50,11 +50,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "All fields are required." }, { status: 400 });
     }
 
+    // First, insert the referral in Supabase and capture the new row ID.
+    const { data: inserted, error: insertError } = await supabase
+      .from("referrals")
+      .insert({
+        user_id: userId,
+        full_name: trimmedFullName,
+        partner_name: trimmedCompanyName,
+        contact_email: trimmedEmail,
+      })
+      .select("id")
+      .single();
+
+    if (insertError || !inserted) {
+      console.error("Failed to insert referral", insertError);
+      return NextResponse.json(
+        { error: insertError?.message || "Failed to save introduction." },
+        { status: 500 }
+      );
+    }
+
+    const supabaseId = inserted.id;
+
     const client = createMondayClient();
 
-    let mondayItemId: string | null = null;
-
     try {
+      console.log("SENDING TO MONDAY BOARD:", process.env.MONDAY_BOARD_ID);
       console.log("Attempting Monday sync for:", trimmedCompanyName);
 
       const clerkUser = await currentUser();
@@ -128,27 +149,18 @@ export async function POST(request: Request) {
           },
         });
 
-        mondayItemId = createdId;
+        const { error: updateError } = await supabase
+          .from("referrals")
+          .update({ monday_item_id: createdId })
+          .eq("id", supabaseId);
+
+        if (updateError) {
+          console.error("Failed to update monday_item_id", updateError);
+        }
       }
     } catch (error) {
       // If Monday is not configured or the API call fails, continue with Supabase only.
       console.error("Failed to sync with Monday.com", error);
-    }
-
-    const { error: insertError } = await supabase.from("referrals").insert({
-      user_id: userId,
-      full_name: trimmedFullName,
-      partner_name: trimmedCompanyName,
-      contact_email: trimmedEmail,
-      monday_item_id: mondayItemId,
-    });
-
-    if (insertError) {
-      console.error("Failed to insert referral", insertError);
-      return NextResponse.json(
-        { error: insertError.message || "Failed to save introduction." },
-        { status: 500 }
-      );
     }
 
     return NextResponse.json({ ok: true }, { status: 200 });

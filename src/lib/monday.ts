@@ -1,5 +1,5 @@
 const MONDAY_API_URL = process.env.MONDAY_API_URL ?? "https://api.monday.com/v2";
-const MONDAY_API_TOKEN = process.env.MONDAY_API_TOKEN;
+const MONDAY_API_TOKEN = process.env.MONDAY_API_KEY ?? process.env.MONDAY_API_TOKEN;
 
 type FetchOptions = {
   query: string;
@@ -8,8 +8,13 @@ type FetchOptions = {
 
 export function createMondayClient() {
   async function mondayFetch<T>({ query, variables }: FetchOptions): Promise<T | null> {
-    if (!MONDAY_API_TOKEN || !MONDAY_API_URL) {
-      // Monday is not configured; treat as no-op for environments without secrets.
+    if (!MONDAY_API_URL) {
+      console.error("MONDAY_API_URL is not set; skipping Monday sync.");
+      return null;
+    }
+
+    if (!MONDAY_API_TOKEN) {
+      console.error("MONDAY_API_KEY/TOKEN is not set; skipping Monday sync.");
       return null;
     }
 
