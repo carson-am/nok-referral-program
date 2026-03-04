@@ -16,6 +16,20 @@ create table if not exists public.referrals (
 create index if not exists idx_referrals_user_id on public.referrals (user_id);
 create index if not exists idx_referrals_created_at on public.referrals (created_at desc);
 
+-- Activity log for stage-to-stage moves (populated by Monday webhook)
+create table if not exists public.referral_activity (
+  id uuid primary key default gen_random_uuid(),
+  user_id text not null,
+  referral_id uuid references public.referrals (id) on delete set null,
+  monday_item_id text,
+  partner_name text not null,
+  from_status text,
+  to_status text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_referral_activity_user_id on public.referral_activity (user_id);
+create index if not exists idx_referral_activity_created_at on public.referral_activity (created_at desc);
+
 -- User signatures (agreement acceptance at sign-up)
 create table if not exists public.user_signatures (
   id uuid primary key default gen_random_uuid(),

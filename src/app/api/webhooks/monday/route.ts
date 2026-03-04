@@ -45,13 +45,32 @@ export async function POST(request: Request) {
 
     console.log("Webhook received for item:", itemId, "New Status:", statusLabel);
 
+    const itemIdStr = String(itemId);
+
+    const { data: referral } = await supabase
+      .from("referrals")
+      .select("id, user_id, partner_name, monday_status")
+      .eq("monday_item_id", itemIdStr)
+      .maybeSingle();
+
+    const previousStatus = referral?.monday_status ?? null;
+
     const { error } = await supabase
       .from("referrals")
       .update({ monday_status: statusLabel })
-      .eq("monday_item_id", String(itemId));
+      .eq("monday_item_id", itemIdStr);
 
     if (error) {
       console.error("Failed to update monday_status", error);
+    } else if (referral && statusLabel) {
+      await supabase.from("referral_activity").insert({
+        user_id: referral.user_id,
+        referral_id: referral.id,
+        monday_item_id: itemIdStr,
+        partner_name: referral.partner_name,
+        from_status: previousStatus,
+        to_status: statusLabel,
+      });
     }
 
     return NextResponse.json({ ok: true }, { status: 200 });

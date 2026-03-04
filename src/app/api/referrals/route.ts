@@ -73,6 +73,14 @@ export async function POST(request: Request) {
 
     const supabaseId = inserted.id;
 
+    await supabase.from("referral_activity").insert({
+      user_id: userId,
+      referral_id: supabaseId,
+      partner_name: trimmedCompanyName,
+      from_status: null,
+      to_status: "Submitted",
+    });
+
     const client = createMondayClient();
 
     try {

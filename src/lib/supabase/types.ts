@@ -40,3 +40,14 @@ export type UserSignatureInsert = Omit<UserSignatureRow, "id" | "created_at"> & 
   id?: string;
   created_at?: string;
 };
+
+export type ReferralActivityRow = {
+  id: string;
+  user_id: string;
+  referral_id: string | null;
+  monday_item_id: string | null;
+  partner_name: string;
+  from_status: string | null;
+  to_status: string;
+  created_at: string;
+};

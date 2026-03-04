@@ -7,7 +7,7 @@ import { MonthlyCalendar } from "@/components/referral-history/MonthlyCalendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { MondayItemBase, MondayStageKey } from "@/lib/monday";
-import type { ReferralRow } from "@/lib/supabase/types";
+import type { ReferralActivityRow, ReferralRow } from "@/lib/supabase/types";
 import { supabase } from "@/lib/supabase/client";
 
 type ItemsByStage = Record<MondayStageKey, MondayItemBase[]>;
@@ -26,7 +26,9 @@ function createEmptyStageMap(): ItemsByStage {
   };
 }
 
+// Visual order: On Hold first, then remaining 8 stages (top row 5, bottom row 4 centered).
 const STAGE_CONFIGS: { key: MondayStageKey; label: string; colorClass: string }[] = [
+  { key: "on_hold", label: "On Hold", colorClass: "bg-muted-foreground/60" },
   {
     key: "scheduling_initial_call",
     label: "Scheduling Initial Call",
@@ -49,12 +51,25 @@ const STAGE_CONFIGS: { key: MondayStageKey; label: string; colorClass: string }[
     label: "Need to Follow Up",
     colorClass: "bg-sky-300",
   },
-  { key: "on_hold", label: "On Hold", colorClass: "bg-muted-foreground/60" },
   { key: "stuck", label: "Stuck", colorClass: "bg-red-500" },
   { key: "done", label: "Done", colorClass: "bg-lime-500" },
 ];
 
 type StageModalState = MondayStageKey | null;
+
+function formatTimeAgo(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const sec = Math.floor((now.getTime() - d.getTime()) / 1000);
+  if (sec < 60) return "just now";
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day}d ago`;
+  return d.toLocaleDateString("en-US", d.getFullYear() !== now.getFullYear() ? { month: "short", day: "numeric", year: "numeric" } : { month: "short", day: "numeric" });
+}
 
 export default function ReferralHistoryPage() {
   const { userId } = useAuth();
@@ -64,6 +79,8 @@ export default function ReferralHistoryPage() {
   const [itemsByStage, setItemsByStage] = useState<ItemsByStage>(createEmptyStageMap);
   const [loadingPipeline, setLoadingPipeline] = useState(true);
   const [stageModal, setStageModal] = useState<StageModalState>(null);
+  const [recentActivity, setRecentActivity] = useState<ReferralActivityRow[]>([]);
+  const [loadingActivity, setLoadingActivity] = useState(true);
 
   useEffect(() => {
     if (!userId || !supabase) {
@@ -108,6 +125,25 @@ export default function ReferralHistoryPage() {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    if (!userId || !supabase) {
+      setLoadingActivity(false);
+      return;
+    }
+    (async () => {
+      const { data, error } = await supabase
+        .from("referral_activity")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (!error && data) {
+        setRecentActivity((data as ReferralActivityRow[]) ?? []);
+      }
+      setLoadingActivity(false);
+    })();
+  }, [userId]);
 
   const pipelineCounts = useMemo(() => {
     const counts: Record<MondayStageKey, number> = {
@@ -157,25 +193,23 @@ export default function ReferralHistoryPage() {
           Personal Dashboard
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Command center for your Nok intros – track every partner from first submission to done.
+          The command center for your partner introductions; track every stage from submission to close.
         </p>
       </div>
 
-      <Card className="bg-card/50">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <div>
-            <CardTitle className="text-base">Potential Rewards</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Estimated upside based on all non-stuck referrals in your pipeline.
-            </p>
-          </div>
+      <Card className="bg-card/50 rounded-[0.75rem]">
+        <CardHeader className="flex flex-col items-center justify-center gap-1 pb-2 text-center">
+          <CardTitle className="text-base">Potential Rewards</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Estimated upside based on all non-stuck referrals in your pipeline.
+          </p>
           <div className="text-2xl font-bold tracking-tight">
             ${potentialRewards.toLocaleString()}
           </div>
         </CardHeader>
       </Card>
 
-      <Card className="bg-card/50">
+      <Card className="bg-card/50 rounded-[0.75rem]">
         <CardHeader>
           <CardTitle className="text-base">Pipeline Stages</CardTitle>
         </CardHeader>
@@ -184,13 +218,14 @@ export default function ReferralHistoryPage() {
             <p className="text-sm text-muted-foreground">Loading your pipeline…</p>
           ) : (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-              {STAGE_CONFIGS.map(({ key, label, colorClass }) => {
+              {STAGE_CONFIGS.map(({ key, label, colorClass }, index) => {
                 const count = pipelineCounts[key] ?? 0;
+                const isFirstOfBottomRow = index === 5;
                 return (
                   <button
                     key={key}
                     type="button"
-                    className="flex h-28 flex-col justify-between rounded-xl border border-border/70 bg-muted/10 p-3 text-left transition-colors hover:border-primary/60 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                    className={`flex h-28 flex-col justify-between rounded-[0.75rem] border border-border/70 bg-muted/10 p-3 text-left transition-colors hover:border-primary/60 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 ${isFirstOfBottomRow ? "md:col-start-2" : ""}`}
                     onClick={() => count > 0 && setStageModal(key)}
                     disabled={count === 0}
                   >
@@ -217,7 +252,38 @@ export default function ReferralHistoryPage() {
         </CardContent>
       </Card>
 
-      <MonthlyCalendar dates={submissionDates} />
+      <div className="grid gap-6 md:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)]">
+        <MonthlyCalendar dates={submissionDates} compact />
+        <Card className="bg-card/50 rounded-[0.75rem]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base text-center md:text-left">Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {loadingActivity ? (
+              <p className="text-sm text-muted-foreground">Loading activity…</p>
+            ) : recentActivity.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No recent stage changes.</p>
+            ) : (
+              <ul className="space-y-3 text-sm">
+                {recentActivity.map((a) => (
+                  <li key={a.id} className="rounded-[0.75rem] border border-border/60 bg-muted/10 px-3 py-2">
+                    {a.from_status ? (
+                      <span className="text-foreground">
+                        <strong>{a.partner_name}</strong> moved from &quot;{a.from_status}&quot; to &quot;{a.to_status}&quot;
+                      </span>
+                    ) : (
+                      <span className="text-foreground">
+                        <strong>{a.partner_name}</strong> submitted
+                      </span>
+                    )}
+                    <span className="ml-1 text-muted-foreground">• {formatTimeAgo(a.created_at)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <StageModal
         stage={stageModal}

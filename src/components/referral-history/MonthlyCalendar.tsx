@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type MonthlyCalendarProps = {
   dates: Date[];
+  compact?: boolean;
 };
 
 type CalendarDay = {
@@ -12,7 +13,7 @@ type CalendarDay = {
   hasActivity: boolean;
 };
 
-export function MonthlyCalendar({ dates }: MonthlyCalendarProps) {
+export function MonthlyCalendar({ dates, compact }: MonthlyCalendarProps) {
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth(); // 0-indexed
@@ -79,19 +80,19 @@ export function MonthlyCalendar({ dates }: MonthlyCalendarProps) {
   const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <Card className="bg-card/50">
-      <CardHeader>
-        <CardTitle className="text-base">{monthLabel}</CardTitle>
+    <Card className="bg-card/50 rounded-[0.75rem]">
+      <CardHeader className={compact ? "pb-1 pt-4" : undefined}>
+        <CardTitle className="text-base text-center">{monthLabel}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="mb-2 grid grid-cols-7 text-center text-xs font-medium text-muted-foreground">
+      <CardContent className={compact ? "px-3 pb-4 pt-0" : undefined}>
+        <div className={`grid grid-cols-7 text-center text-xs font-medium text-muted-foreground ${compact ? "mb-1" : "mb-2"}`}>
           {weekdayLabels.map((label) => (
-            <div key={label} className="py-1">
+            <div key={label} className="py-0.5">
               {label}
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-1 text-xs">
+        <div className="grid grid-cols-7 gap-0.5 text-xs">
           {calendarDays.map((day) => {
             const isToday =
               day.date.getFullYear() === today.getFullYear() &&
@@ -102,7 +103,8 @@ export function MonthlyCalendar({ dates }: MonthlyCalendarProps) {
               <div
                 key={day.date.toISOString()}
                 className={[
-                  "flex h-8 items-center justify-center rounded-md border border-transparent",
+                  "flex items-center justify-center rounded-md border border-transparent",
+                  compact ? "h-6" : "h-8",
                   day.isCurrentMonth ? "text-foreground" : "text-muted-foreground/50",
                   day.hasActivity ? "bg-primary/20 border-primary/60" : "bg-muted/20",
                   isToday ? "ring-1 ring-primary/70" : "",
