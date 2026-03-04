@@ -23,8 +23,8 @@ type MondayBoardResponse = {
 
 type ItemsByStage = Record<MondayStageKey, MondayItemBase[]>;
 
-const BOARD_ID = 18024428968;
-const REFERRAL_EMAIL_COLUMN_ID = "text_mm13567w";
+const MONDAY_BOARD_ID = Number(process.env.MONDAY_BOARD_ID) || 18024428968;
+const REFERRAL_EMAIL_COLUMN_ID = process.env.MONDAY_EMAIL_COL_ID || "text_mm13567w";
 const STATUS_COLUMN_ID = "status";
 
 function createEmptyStageMap(): ItemsByStage {
@@ -82,7 +82,7 @@ export async function GET() {
 
     const data = await client.mondayFetch<QueryResponse>({
       query,
-      variables: { boardId: BOARD_ID },
+      variables: { boardId: MONDAY_BOARD_ID },
     });
 
     if (!data || !data.boards?.length) {

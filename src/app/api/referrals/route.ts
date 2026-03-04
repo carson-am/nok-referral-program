@@ -10,6 +10,10 @@ type ReferralPayload = {
   email: string;
 };
 
+const MONDAY_BOARD_ID = Number(process.env.MONDAY_BOARD_ID) || 18024428968;
+const MONDAY_NAME_COL_ID = process.env.MONDAY_NAME_COL_ID || "text_mm13vp9b";
+const MONDAY_EMAIL_COL_ID = process.env.MONDAY_EMAIL_COL_ID || "text_mm13567w";
+
 export async function POST(request: Request) {
   try {
     const { userId } = await auth();
@@ -49,6 +53,8 @@ export async function POST(request: Request) {
     let mondayItemId: string | null = null;
 
     try {
+      console.log("Attempting Monday sync for:", trimmedCompanyName);
+
       const clerkUser = await currentUser();
       const clerkFullName =
         (clerkUser?.fullName ??
@@ -65,29 +71,63 @@ export async function POST(request: Request) {
         };
       };
 
-      const mutation = `
-        mutation CreateReferralItem($boardId: ID!, $itemName: String!, $columnValues: JSON!) {
-          create_item (board_id: $boardId, item_name: $itemName, column_values: $columnValues) {
+      type ChangeColumnsResponse = {
+        change_multiple_column_values: {
+          id: string;
+        };
+      };
+
+      const createItemMutation = `
+        mutation CreateReferralItem($boardId: ID!, $itemName: String!) {
+          create_item(board_id: $boardId, item_name: $itemName) {
             id
           }
         }
       `;
 
-      const columnValues = JSON.stringify({
-        text_mm13vp9b: clerkFullName,
-        text_mm13567w: clerkEmail,
-      });
-
-      const data = await client.mondayFetch<CreateItemResponse>({
-        query: mutation,
+      const created = await client.mondayFetch<CreateItemResponse>({
+        query: createItemMutation,
         variables: {
-          boardId: 18024428968,
+          boardId: MONDAY_BOARD_ID,
           itemName: trimmedCompanyName,
-          columnValues,
         },
       });
 
-      mondayItemId = data?.create_item.id ?? null;
+      const createdId = created?.create_item.id;
+
+      if (createdId) {
+        const changeColumnsMutation = `
+          mutation UpdateReferralColumns(
+            $boardId: ID!
+            $itemId: ID!
+            $columnValues: JSON!
+          ) {
+            change_multiple_column_values(
+              board_id: $boardId
+              item_id: $itemId
+              column_values: $columnValues
+            ) {
+              id
+            }
+          }
+        `;
+
+        const columnValues = JSON.stringify({
+          [MONDAY_NAME_COL_ID]: clerkFullName,
+          [MONDAY_EMAIL_COL_ID]: clerkEmail,
+        });
+
+        await client.mondayFetch<ChangeColumnsResponse>({
+          query: changeColumnsMutation,
+          variables: {
+            boardId: MONDAY_BOARD_ID,
+            itemId: createdId,
+            columnValues,
+          },
+        });
+
+        mondayItemId = createdId;
+      }
     } catch (error) {
       // If Monday is not configured or the API call fails, continue with Supabase only.
       console.error("Failed to sync with Monday.com", error);
