@@ -118,9 +118,9 @@ export default function ProgramFaqPage() {
           </div>
           <Accordion type="single" collapsible className="space-y-3">
             <AccordionItem value="rewards-1">
-              <AccordionTrigger>How and when do I get paid for a successful referral?</AccordionTrigger>
+              <AccordionTrigger>How and when do I get paid?</AccordionTrigger>
               <AccordionContent>
-                Referral rewards are triggered once the referred partner signs a contract. Payouts are processed monthly.
+                Referral rewards are triggered once the referred partner signs a contract with Nok. Payouts are processed monthly. A Platform Bonus of $5,000 (as defined in Exhibit A of the Nok Referral Agreement) may apply when an introduction results in a multi-service agreement.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="rewards-3">

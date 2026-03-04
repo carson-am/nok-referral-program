@@ -1,10 +1,10 @@
-/** Agreement body with placeholders [NAME] and [Referral Partner NAME] for sign-up flow. */
-export const REFERRAL_AGREEMENT_TEMPLATE = `REFERRAL AGREEMENT
+/** Agreement body with placeholders [NAME] and [Referral Partner NAME] for sign-up flow. Final Nok Referral Agreement. */
+export const REFERRAL_AGREEMENT_TEMPLATE = `REFERRAL AGREEMENT (FINAL)
 This Referral Agreement is entered into by and between Nokking Inc. ("Nok") and [Referral Partner NAME] ("Referral Partner").
 
-Select Definitions.
+Selected Definitions.
 1.2. "Services" means Nok's Returns Management and Resale offerings.
-1.4. "Qualifying Agreement" means any definitive agreement Nok enters into with Registered Leads.
+1.4. "Qualifying Agreement" means any definitive agreement Nok enters into with Registered Leads. Referral rewards are triggered once the referred partner signs a contract with Nok.
 1.5. "Registered Leads" means each proposed lead provided by Referral Partner and approved by Nok.
 
 Services and Compensation.
@@ -35,7 +35,7 @@ This Agreement shall be governed by the laws of the State of Texas. Any legal pr
 EXHIBIT A: COMPENSATION
 Brand Introductions (Gross Profit Share): Deal 1: 10% | Deal 2: 7.5% | Deal 3+: 4%
 Buyer Introductions (Revenue Share): Deal 1: 7.5% | Deal 2: 5% | Deal 3+: 3%
-Platform Bonus: If an introduction results in a multi-service agreement, Referral Partner shall receive $5,000.
+Platform Bonus: If an introduction results in a multi-service agreement, Referral Partner shall receive a one-time Platform Bonus of $5,000, payable after the referred partner signs a contract with Nok.
 
 Referral Partner Representative: [NAME]`;
 

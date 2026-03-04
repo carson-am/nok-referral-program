@@ -286,10 +286,10 @@ export default function SignUpPage() {
               <div className="space-y-5">
                 <div>
                   <a
-                    href="/referral-agreement.pdf"
+                    href="/nok-referral-agreement-final.pdf"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-medium text-primary hover:underline"
+                    className="inline-flex items-center rounded-[0.75rem] border border-primary/60 bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 hover:underline"
                   >
                     Download PDF
                   </a>
@@ -300,8 +300,7 @@ export default function SignUpPage() {
                   </pre>
                 </ScrollArea>
                 <p className="text-xs italic text-muted-foreground">
-                  Note: This is our standard Referral Agreement used for all partners to ensure program
-                  simplicity and operational speed. These terms are non-negotiable.
+                  Note: This is the final Nok Referral Agreement used for all partners. These terms are non-negotiable.
                 </p>
                 <div className="flex flex-row items-start gap-3 space-y-0 rounded-xl border border-border/70 bg-muted/20 p-4">
                   <Checkbox
