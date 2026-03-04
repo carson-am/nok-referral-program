@@ -58,6 +58,7 @@ export async function POST(request: Request) {
         full_name: trimmedFullName,
         partner_name: trimmedCompanyName,
         contact_email: trimmedEmail,
+        monday_status: "Submitted",
       })
       .select("id")
       .single();

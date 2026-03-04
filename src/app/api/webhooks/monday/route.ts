@@ -43,6 +43,8 @@ export async function POST(request: Request) {
 
     const statusLabel = (value as { label?: string; text?: string }).label ?? null;
 
+    console.log("Webhook received for item:", itemId, "New Status:", statusLabel);
+
     const { error } = await supabase
       .from("referrals")
       .update({ monday_status: statusLabel })
