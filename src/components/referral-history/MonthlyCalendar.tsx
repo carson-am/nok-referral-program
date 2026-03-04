@@ -1,10 +1,12 @@
 import { useMemo } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 type MonthlyCalendarProps = {
   dates: Date[];
   compact?: boolean;
+  className?: string;
 };
 
 type CalendarDay = {
@@ -13,7 +15,7 @@ type CalendarDay = {
   hasActivity: boolean;
 };
 
-export function MonthlyCalendar({ dates, compact }: MonthlyCalendarProps) {
+export function MonthlyCalendar({ dates, compact, className }: MonthlyCalendarProps) {
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth(); // 0-indexed
@@ -80,7 +82,7 @@ export function MonthlyCalendar({ dates, compact }: MonthlyCalendarProps) {
   const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <Card className="bg-card/50 rounded-[0.75rem]">
+    <Card className={cn("bg-card/50 rounded-[0.75rem]", className)}>
       <CardHeader className={compact ? "pb-1 pt-4" : undefined}>
         <CardTitle className="text-base text-center">{monthLabel}</CardTitle>
       </CardHeader>
