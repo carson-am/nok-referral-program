@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 
@@ -51,14 +53,17 @@ export async function GET() {
     }
 
     const user = await currentUser();
-    const email =
+    const userEmail =
       user?.primaryEmailAddress?.emailAddress ??
       user?.emailAddresses?.[0]?.emailAddress ??
       null;
 
-    if (!email) {
+    if (!userEmail) {
+      console.error("No user email found for Clerk user:", userId);
       return NextResponse.json({ itemsByStage: createEmptyStageMap() }, { status: 200 });
     }
+
+    console.log("Monday API Request for Email:", userEmail);
 
     const client = createMondayClient();
 
@@ -85,6 +90,8 @@ export async function GET() {
       variables: { boardId: MONDAY_BOARD_ID },
     });
 
+    console.log("Monday API Response Data:", JSON.stringify(data));
+
     if (!data || !data.boards?.length) {
       return NextResponse.json({ itemsByStage: createEmptyStageMap() }, { status: 200 });
     }
@@ -92,7 +99,7 @@ export async function GET() {
     const board = data.boards[0];
     const itemsByStage: ItemsByStage = createEmptyStageMap();
 
-    const normalizedUserEmail = email.trim().toLowerCase();
+    const normalizedUserEmail = userEmail.trim().toLowerCase();
 
     for (const item of board.items ?? []) {
       const emailColumn = item.column_values.find(
