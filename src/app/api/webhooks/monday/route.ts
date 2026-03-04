@@ -34,18 +34,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true }, { status: 200 });
     }
 
-    const itemId = event.itemId;
+    const pulseId = event.itemId;
     const value = event.value;
 
-    if (!itemId || !value) {
+    if (!pulseId || !value) {
       return NextResponse.json({ ok: true }, { status: 200 });
     }
 
+    console.log("Webhook hit for Monday Item:", pulseId);
+
     const statusLabel = (value as { label?: string; text?: string }).label ?? null;
-
-    console.log("Webhook received for item:", itemId, "New Status:", statusLabel);
-
-    const itemIdStr = String(itemId);
+    const itemIdStr = String(pulseId);
 
     const { data: referral } = await supabase
       .from("referrals")
@@ -53,7 +52,13 @@ export async function POST(request: Request) {
       .eq("monday_item_id", itemIdStr)
       .maybeSingle();
 
-    const previousStatus = referral?.monday_status ?? null;
+    if (!referral) {
+      console.warn("No referral found for Monday item:", pulseId);
+      return NextResponse.json({ ok: true }, { status: 200 });
+    }
+
+    const foundUserId = referral.user_id;
+    const previousStatus = referral.monday_status ?? null;
 
     const { error } = await supabase
       .from("referrals")
@@ -62,15 +67,19 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error("Failed to update monday_status", error);
-    } else if (referral && statusLabel) {
+      return NextResponse.json({ ok: true }, { status: 200 });
+    }
+
+    if (statusLabel) {
       await supabase.from("referral_activity").insert({
-        user_id: referral.user_id,
+        user_id: foundUserId,
         referral_id: referral.id,
         monday_item_id: itemIdStr,
         partner_name: referral.partner_name,
         from_status: previousStatus,
         to_status: statusLabel,
       });
+      console.log("Activity logged for User:", foundUserId);
     }
 
     return NextResponse.json({ ok: true }, { status: 200 });
