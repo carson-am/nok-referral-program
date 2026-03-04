@@ -306,6 +306,10 @@ export default function ReferralHistoryPage() {
                       <span className="text-foreground">
                         <strong>{a.partner_name}</strong> moved from &quot;{a.from_status}&quot; to &quot;{a.to_status}&quot;
                       </span>
+                    ) : a.to_status === "Imported from Monday Pipeline." ? (
+                      <span className="text-foreground">
+                        <strong>{a.partner_name}</strong> — Imported from Monday Pipeline.
+                      </span>
                     ) : (
                       <span className="text-foreground">
                         New Introduction: <strong>{a.partner_name}</strong> submitted

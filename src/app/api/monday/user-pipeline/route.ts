@@ -104,15 +104,22 @@ export async function GET() {
 
     const itemsByStage: ItemsByStage = createEmptyStageMap();
 
+    const clerkFullName =
+      (user?.firstName || user?.lastName)
+        ? [user.firstName, user.lastName].filter(Boolean).join(" ").trim() || undefined
+        : undefined;
+    const fullNameForImport = user?.fullName ?? clerkFullName ?? "Referral Partner";
+
     if (supabase) {
       for (const item of items) {
         const statusColumn = item.column_values[0];
         const statusLabel = statusColumn?.text ?? null;
+        const itemIdStr = String(item.id);
 
         const { data: referral } = await supabase
           .from("referrals")
           .select("id, user_id, partner_name, monday_status")
-          .eq("monday_item_id", String(item.id))
+          .eq("monday_item_id", itemIdStr)
           .maybeSingle();
 
         if (referral) {
@@ -124,18 +131,43 @@ export async function GET() {
             const { error: updateError } = await supabase
               .from("referrals")
               .update({ monday_status: statusLabel })
-              .eq("monday_item_id", String(item.id));
+              .eq("monday_item_id", itemIdStr);
 
             if (!updateError && (statusLabel ?? "").trim() !== "") {
               await supabase.from("referral_activity").insert({
                 user_id: referral.user_id,
                 referral_id: referral.id,
-                monday_item_id: String(item.id),
+                monday_item_id: itemIdStr,
                 partner_name: referral.partner_name,
                 from_status: oldStatus,
                 to_status: (statusLabel ?? "").trim(),
               });
             }
+          }
+        } else {
+          const { data: inserted, error: insertError } = await supabase
+            .from("referrals")
+            .insert({
+              user_id: userId,
+              full_name: fullNameForImport,
+              partner_name: item.name || "Unknown",
+              contact_email: "imported@nok.referral",
+              status: "submitted",
+              monday_item_id: itemIdStr,
+              monday_status: statusLabel,
+            })
+            .select("id")
+            .single();
+
+          if (!insertError && inserted) {
+            await supabase.from("referral_activity").insert({
+              user_id: userId,
+              referral_id: inserted.id,
+              monday_item_id: itemIdStr,
+              partner_name: item.name || "Unknown",
+              from_status: null,
+              to_status: "Imported from Monday Pipeline.",
+            });
           }
         }
 
