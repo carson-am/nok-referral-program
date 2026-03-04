@@ -302,13 +302,13 @@ export default function ReferralHistoryPage() {
               <ul className="space-y-3 text-sm">
                 {recentActivity.map((a) => (
                   <li key={a.id} className="rounded-[0.75rem] border border-border/60 bg-muted/10 px-3 py-2">
-                    {a.from_status ? (
+                    {a.from_status != null && a.from_status !== "" ? (
                       <span className="text-foreground">
                         <strong>{a.partner_name}</strong> moved from &quot;{a.from_status}&quot; to &quot;{a.to_status}&quot;
                       </span>
                     ) : (
                       <span className="text-foreground">
-                        <strong>{a.partner_name}</strong> submitted
+                        New Introduction: <strong>{a.partner_name}</strong> submitted
                       </span>
                     )}
                     <span className="ml-1 text-muted-foreground">• {formatTimeAgo(a.created_at)}</span>

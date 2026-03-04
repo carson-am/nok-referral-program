@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 
 import { createMondayClient, getStageFromStatus, type MondayItemBase, type MondayStageKey } from "@/lib/monday";
+import { supabase } from "@/lib/supabase/client";
 
 type MondayColumnValue = {
   id: string;
@@ -103,20 +104,63 @@ export async function GET() {
 
     const itemsByStage: ItemsByStage = createEmptyStageMap();
 
-    for (const item of items) {
-      const statusColumn = item.column_values[0];
+    if (supabase) {
+      for (const item of items) {
+        const statusColumn = item.column_values[0];
+        const statusLabel = statusColumn?.text ?? null;
 
-      const statusLabel = statusColumn?.text ?? null;
-      const stage = getStageFromStatus(statusLabel);
+        const { data: referral } = await supabase
+          .from("referrals")
+          .select("id, user_id, partner_name, monday_status")
+          .eq("monday_item_id", String(item.id))
+          .maybeSingle();
 
-      const mapped: MondayItemBase = {
-        id: item.id,
-        name: item.name,
-        created_at: item.created_at,
-        statusLabel,
-      };
+        if (referral) {
+          const oldStatus = referral.monday_status ?? null;
+          const oldNormalized = (oldStatus ?? "").trim();
+          const newNormalized = (statusLabel ?? "").trim();
 
-      itemsByStage[stage].push(mapped);
+          if (oldNormalized !== newNormalized) {
+            const { error: updateError } = await supabase
+              .from("referrals")
+              .update({ monday_status: statusLabel })
+              .eq("monday_item_id", String(item.id));
+
+            if (!updateError && (statusLabel ?? "").trim() !== "") {
+              await supabase.from("referral_activity").insert({
+                user_id: referral.user_id,
+                referral_id: referral.id,
+                monday_item_id: String(item.id),
+                partner_name: referral.partner_name,
+                from_status: oldStatus,
+                to_status: (statusLabel ?? "").trim(),
+              });
+            }
+          }
+        }
+
+        const stage = getStageFromStatus(statusLabel);
+        const mapped: MondayItemBase = {
+          id: item.id,
+          name: item.name,
+          created_at: item.created_at,
+          statusLabel,
+        };
+        itemsByStage[stage].push(mapped);
+      }
+    } else {
+      for (const item of items) {
+        const statusColumn = item.column_values[0];
+        const statusLabel = statusColumn?.text ?? null;
+        const stage = getStageFromStatus(statusLabel);
+        const mapped: MondayItemBase = {
+          id: item.id,
+          name: item.name,
+          created_at: item.created_at,
+          statusLabel,
+        };
+        itemsByStage[stage].push(mapped);
+      }
     }
 
     return NextResponse.json({ itemsByStage }, { status: 200 });

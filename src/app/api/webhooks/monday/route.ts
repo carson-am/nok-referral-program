@@ -46,6 +46,7 @@ export async function POST(request: Request) {
     const statusLabel = (value as { label?: string; text?: string }).label ?? null;
     const itemIdStr = String(pulseId);
 
+    // Look up referral to get user_id, partner_name, and current monday_status (from_status) before updating.
     const { data: referral } = await supabase
       .from("referrals")
       .select("id, user_id, partner_name, monday_status")
