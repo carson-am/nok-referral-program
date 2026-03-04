@@ -18,11 +18,9 @@ type MondayItem = {
 };
 
 type QueryResponse = {
-  boards: Array<{
-    items_page: {
-      items: MondayItem[];
-    } | null;
-  }>;
+  items_page_by_column_values: {
+    items: MondayItem[];
+  } | null;
 };
 
 type ItemsByStage = Record<MondayStageKey, MondayItemBase[]>;
@@ -69,22 +67,18 @@ export async function GET() {
     const client = createMondayClient();
 
     const query = `
-      query UserPipeline($boardIds: [ID!], $email: String!) {
-        boards (ids: $boardIds) {
-          items_page (query_params: {
-            rules: [{
-              column_id: "${REFERRAL_EMAIL_COLUMN_ID}", 
-              compare_value: [$email], 
-              operator: any_of
-            }]
-          }) {
-            items {
-              id
-              name
-              created_at
-              column_values (ids: ["${STATUS_COLUMN_ID}"]) {
-                text
-              }
+      query UserPipeline($boardId: ID!, $email: String!) {
+        items_page_by_column_values(
+          board_id: $boardId
+          column_id: "${REFERRAL_EMAIL_COLUMN_ID}"
+          column_value: $email
+        ) {
+          items {
+            id
+            name
+            created_at
+            column_values (ids: ["${STATUS_COLUMN_ID}"]) {
+              text
             }
           }
         }
@@ -93,16 +87,16 @@ export async function GET() {
 
     const data = await client.mondayFetch<QueryResponse>({
       query,
-      variables: { boardIds: [MONDAY_BOARD_ID], email: userEmail },
+      variables: { boardId: MONDAY_BOARD_ID, email: userEmail },
     });
 
     console.log("Monday API Response Data:", JSON.stringify(data));
 
-    if (!data || !data.boards?.length || !data.boards[0].items_page) {
+    if (!data || !data.items_page_by_column_values) {
       return NextResponse.json({ itemsByStage: createEmptyStageMap() }, { status: 200 });
     }
 
-    const items = data.boards[0].items_page.items ?? [];
+    const items = data.items_page_by_column_values.items ?? [];
     console.log("Found " + items.length + " items for " + userEmail);
 
     const itemsByStage: ItemsByStage = createEmptyStageMap();
