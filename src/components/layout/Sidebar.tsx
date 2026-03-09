@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
-import { HelpCircle, History, LogOut, Megaphone } from "lucide-react";
+import { HelpCircle, History, LogOut, Megaphone, Video } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/dashboard/referral-history", label: "Personal Dashboard", icon: History },
+  { href: "/dashboard/meeting-archive", label: "Meeting Archive", icon: Video },
   { href: "/dashboard/marketing-materials", label: "Nok Materials", icon: Megaphone },
   { href: "/dashboard/program-faq", label: "Program FAQ", icon: HelpCircle },
 ] as const;

@@ -1,10 +1,13 @@
 import { useMemo } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { EventRecord } from "@/lib/events";
 import { cn } from "@/lib/utils";
 
 type MonthlyCalendarProps = {
   dates: Date[];
+  events?: EventRecord[];
+  onDateClick?: (date: Date, events: EventRecord[]) => void;
   compact?: boolean;
   className?: string;
 };
@@ -13,10 +16,17 @@ type CalendarDay = {
   date: Date;
   isCurrentMonth: boolean;
   hasActivity: boolean;
+  hasMeeting: boolean;
+  meetingEvents: EventRecord[];
 };
 
-export function MonthlyCalendar({ dates, compact, className }: MonthlyCalendarProps) {
+function toDateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+export function MonthlyCalendar({ dates, events = [], onDateClick, compact, className }: MonthlyCalendarProps) {
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const year = today.getFullYear();
   const month = today.getMonth(); // 0-indexed
 
@@ -29,6 +39,20 @@ export function MonthlyCalendar({ dates, compact, className }: MonthlyCalendarPr
     return set;
   }, [dates]);
 
+  const todayKey = toDateKey(today);
+  const eventsByDateKey = useMemo(() => {
+    const map = new Map<string, EventRecord[]>();
+    for (const e of events) {
+      if (!e.date) continue;
+      const key = toDateKey(new Date(e.date));
+      if (key < todayKey) continue;
+      const list = map.get(key) ?? [];
+      list.push(e);
+      map.set(key, list);
+    }
+    return map;
+  }, [events, todayKey]);
+
   const calendarDays: CalendarDay[] = useMemo(() => {
     const firstOfMonth = new Date(year, month, 1);
     const startDay = firstOfMonth.getDay(); // 0 (Sun) - 6 (Sat)
@@ -36,43 +60,36 @@ export function MonthlyCalendar({ dates, compact, className }: MonthlyCalendarPr
 
     const days: CalendarDay[] = [];
 
-    // Leading days from previous month
+    const addDay = (date: Date, isCurrentMonth: boolean) => {
+      const iso = new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString();
+      const dateKey = toDateKey(date);
+      const meetingEvents = eventsByDateKey.get(dateKey) ?? [];
+      days.push({
+        date,
+        isCurrentMonth,
+        hasActivity: activitySet.has(iso),
+        hasMeeting: meetingEvents.length > 0,
+        meetingEvents,
+      });
+    };
+
     for (let i = 0; i < startDay; i++) {
       const date = new Date(year, month, i - startDay + 1);
-      const key = new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString();
-      days.push({
-        date,
-        isCurrentMonth: false,
-        hasActivity: activitySet.has(key),
-      });
+      addDay(date, false);
     }
-
-    // Current month days
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
-      const key = new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString();
-      days.push({
-        date,
-        isCurrentMonth: true,
-        hasActivity: activitySet.has(key),
-      });
+      addDay(date, true);
     }
-
-    // Ensure full weeks (up to 6 weeks / 42 cells)
     while (days.length % 7 !== 0) {
       const last = days[days.length - 1]?.date ?? new Date(year, month, daysInMonth);
       const date = new Date(last);
       date.setDate(date.getDate() + 1);
-      const key = new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString();
-      days.push({
-        date,
-        isCurrentMonth: false,
-        hasActivity: activitySet.has(key),
-      });
+      addDay(date, false);
     }
 
     return days;
-  }, [activitySet, month, year]);
+  }, [activitySet, eventsByDateKey, month, year]);
 
   const monthLabel = today.toLocaleDateString("en-US", {
     month: "long",
@@ -101,18 +118,29 @@ export function MonthlyCalendar({ dates, compact, className }: MonthlyCalendarPr
               day.date.getMonth() === today.getMonth() &&
               day.date.getDate() === today.getDate();
 
+            const hasMeeting = day.hasMeeting && day.meetingEvents.length > 0;
+            const Cell = hasMeeting && onDateClick ? "button" : "div";
+
             return (
-              <div
+              <Cell
                 key={day.date.toISOString()}
+                type={Cell === "button" ? "button" : undefined}
+                onClick={
+                  Cell === "button" && onDateClick
+                    ? () => onDateClick(day.date, day.meetingEvents)
+                    : undefined
+                }
                 className={cn(
                   "flex min-h-0 items-center justify-center rounded-md border border-transparent transition-colors hover:border-primary/40",
+                  Cell === "button" && "cursor-pointer",
                   day.isCurrentMonth ? "text-foreground" : "text-muted-foreground/50",
                   day.hasActivity ? "bg-primary/20 border-primary/60" : "bg-muted/20",
+                  hasMeeting && "ring-1 ring-primary/50",
                   isToday && "ring-1 ring-primary/70"
                 )}
               >
                 {day.date.getDate()}
-              </div>
+              </Cell>
             );
           })}
         </div>

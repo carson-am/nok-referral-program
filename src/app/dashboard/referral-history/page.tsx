@@ -3,9 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 
+import { EventModal } from "@/components/referral-history/EventModal";
 import { MonthlyCalendar } from "@/components/referral-history/MonthlyCalendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import type { EventRecord } from "@/lib/events";
 import type { MondayItemBase, MondayStageKey } from "@/lib/monday";
 import type { ReferralActivityRow, ReferralRow } from "@/lib/supabase/types";
 import { supabase } from "@/lib/supabase/client";
@@ -81,6 +83,9 @@ export default function ReferralHistoryPage() {
   const [stageModal, setStageModal] = useState<StageModalState>(null);
   const [recentActivity, setRecentActivity] = useState<ReferralActivityRow[]>([]);
   const [loadingActivity, setLoadingActivity] = useState(true);
+  const [events, setEvents] = useState<EventRecord[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<EventRecord | null>(null);
+  const [eventModalOpen, setEventModalOpen] = useState(false);
 
   useEffect(() => {
     if (!userId || !supabase) {
@@ -144,6 +149,18 @@ export default function ReferralHistoryPage() {
       setLoadingActivity(false);
     })();
   }, [userId]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/monday/events");
+        const data = (await res.json()) as { events?: EventRecord[] };
+        setEvents((data.events ?? []).filter(Boolean));
+      } catch {
+        setEvents([]);
+      }
+    })();
+  }, []);
 
   const pipelineCounts = useMemo(() => {
     const counts: Record<MondayStageKey, number> = {
@@ -289,7 +306,18 @@ export default function ReferralHistoryPage() {
 
       <div className="flex flex-col gap-6 md:flex-row md:flex-nowrap md:min-h-[420px] md:items-stretch">
         <div className="md:w-[45%] md:flex-shrink-0 md:min-h-[420px]">
-          <MonthlyCalendar dates={submissionDates} compact className="h-full border border-border/70 transition-colors hover:border-primary/60" />
+          <MonthlyCalendar
+            dates={submissionDates}
+            events={events}
+            onDateClick={(_, dayEvents) => {
+              if (dayEvents.length > 0) {
+                setSelectedEvent(dayEvents[0]);
+                setEventModalOpen(true);
+              }
+            }}
+            compact
+            className="h-full border border-border/70 transition-colors hover:border-primary/60"
+          />
         </div>
         <Card className="flex min-h-[400px] flex-1 flex-col border border-border/70 bg-card/50 rounded-[0.75rem] transition-colors hover:border-primary/60 md:min-h-[420px]">
           <CardHeader className="shrink-0 pb-2">
@@ -338,6 +366,14 @@ export default function ReferralHistoryPage() {
         stage={stageModal}
         onOpenChange={(open) => !open && setStageModal(null)}
         itemsByStage={itemsByStage}
+      />
+      <EventModal
+        event={selectedEvent}
+        open={eventModalOpen}
+        onOpenChange={(open) => {
+          setEventModalOpen(open);
+          if (!open) setSelectedEvent(null);
+        }}
       />
     </div>
   );
