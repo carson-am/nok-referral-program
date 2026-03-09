@@ -41,7 +41,7 @@ export function EventModal({ event, open, onOpenChange }: EventModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showClose className="max-h-[85vh] flex flex-col overflow-hidden rounded-[0.75rem]">
+      <DialogContent showClose className="max-h-[85vh] flex flex-col overflow-hidden rounded-[0.75rem] p-8">
         <DialogHeader>
           <DialogTitle>{event.name}</DialogTitle>
           <DialogDescription className="flex items-center gap-2">
@@ -53,8 +53,10 @@ export function EventModal({ event, open, onOpenChange }: EventModalProps) {
           </DialogDescription>
         </DialogHeader>
         {event.description && (
-          <ScrollArea className="h-[200px] min-h-0 flex-1 rounded-xl border border-border/70 bg-muted/10 p-6">
-            <p className="whitespace-pre-wrap text-sm text-foreground">{event.description}</p>
+          <ScrollArea className="h-[200px] min-h-0 w-full flex-1 rounded-[0.75rem] border border-border/70 bg-muted/10">
+            <div className="px-8 py-6">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">{event.description}</p>
+            </div>
           </ScrollArea>
         )}
         <div className="flex shrink-0 items-center gap-3 pt-6">
