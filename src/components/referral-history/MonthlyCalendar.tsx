@@ -145,8 +145,7 @@ export function MonthlyCalendar({ dates, events = [], onDateClick, compact, clas
           })}
         </div>
         <div className="shrink-0 border-t border-white/5 px-2 py-3">
-          <p className="text-xs font-medium text-foreground">{monthLabel} Overview</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             Select a date to view specific meeting details or click an event to join.
           </p>
         </div>

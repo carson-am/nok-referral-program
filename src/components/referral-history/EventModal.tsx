@@ -53,11 +53,11 @@ export function EventModal({ event, open, onOpenChange }: EventModalProps) {
           </DialogDescription>
         </DialogHeader>
         {event.description && (
-          <ScrollArea className="h-[200px] flex-1 rounded-xl border border-border/70 bg-muted/10 p-4">
+          <ScrollArea className="h-[200px] min-h-0 flex-1 rounded-xl border border-border/70 bg-muted/10 p-6">
             <p className="whitespace-pre-wrap text-sm text-foreground">{event.description}</p>
           </ScrollArea>
         )}
-        <div className="flex gap-3 pt-2">
+        <div className="flex shrink-0 items-center gap-3 pt-6">
           {event.meetingUrl && (
             <Button asChild className="rounded-[0.75rem]">
               <a
