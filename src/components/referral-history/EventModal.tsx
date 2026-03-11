@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { EventRecord } from "@/lib/events";
-import { formatEventDateTime } from "@/lib/events";
 
 type EventModalProps = {
   event: EventRecord | null;
@@ -20,15 +19,80 @@ type EventModalProps = {
   onOpenChange: (open: boolean) => void;
 };
 
+function buildLiteralDateTimeLabel(raw: string | null | undefined): string {
+  if (!raw) {
+    return "Date & Time TBD";
+  }
+
+  // Accept both ISO and space-separated formats, e.g. "2026-03-25T11:00:00Z" or "2026-03-25 11:00"
+  const [datePartRaw, timePartRaw] = raw.split(/[T ]/);
+  if (!datePartRaw) return "Date & Time TBD";
+
+  const [yearStr, monthStr, dayStr] = datePartRaw.split("-");
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  const day = Number(dayStr);
+
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return "Date & Time TBD";
+  }
+
+  // Weekday via Zeller's congruence (avoids Date/timezone)
+  const mAdj = month < 3 ? month + 12 : month;
+  const yAdj = month < 3 ? year - 1 : year;
+  const K = yAdj % 100;
+  const J = Math.floor(yAdj / 100);
+  const h =
+    (day + Math.floor((13 * (mAdj + 1)) / 5) + K + Math.floor(K / 4) + Math.floor(J / 4) + 5 * J) %
+    7;
+  const weekdayIndex = ((h + 6) % 7) as 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = Sunday
+  const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
+  const months = [
+    "",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ] as const;
+
+  const weekday = weekdays[weekdayIndex];
+  const monthName = months[month] ?? "";
+
+  let timeLabel = "Time TBD";
+
+  if (timePartRaw) {
+    const cleanTime = timePartRaw.replace(/Z$/, "").split(":").slice(0, 2);
+    const [hStr, mStr] = cleanTime;
+    const hNum = Number(hStr);
+    const mNum = Number(mStr);
+    if (Number.isFinite(hNum) && Number.isFinite(mNum)) {
+      const twelveHour = ((hNum + 11) % 12) + 1;
+      const suffix = hNum >= 12 ? "PM" : "AM";
+      const mm = String(mNum).padStart(2, "0");
+      timeLabel = `${twelveHour}:${mm} ${suffix} ET`;
+    }
+  }
+
+  return `${weekday}, ${monthName} ${day}, ${year} • ${timeLabel}`;
+}
+
 export function EventModal({ event, open, onOpenChange }: EventModalProps) {
   if (!event) return null;
 
-  const dateLabel = formatEventDateTime(event.date, { includeWeekday: true });
+  const dateLabel = buildLiteralDateTimeLabel(event.date);
 
   function handleAddToCalendar() {
     if (!event) return;
 
-    // Fallback: if we don't have a concrete datetime, just open a basic template with details.
+    // If we don't have a concrete datetime, open a basic template with details.
     if (!event.date) {
       const fallbackUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
         event.name,
@@ -39,89 +103,62 @@ export function EventModal({ event, open, onOpenChange }: EventModalProps) {
       return;
     }
 
-    try {
-      const iso = event.date.includes("T") && /Z$/.test(event.date)
-        ? event.date
-        : `${event.date}Z`.replace(/ZZ$/, "Z");
-      const utcDate = new Date(iso);
-      if (Number.isNaN(utcDate.getTime())) {
-        const fallbackUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
-          event.name,
-        )}&details=${encodeURIComponent(event.description || "")}&location=${encodeURIComponent(
-          event.meetingUrl || "",
-        )}`;
-        window.open(fallbackUrl, "_blank");
-        return;
-      }
-
-      // Convert UTC to America/New_York components using Intl.
-      const parts = new Intl.DateTimeFormat("en-US", {
-        timeZone: "America/New_York",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }).formatToParts(utcDate);
-
-      const getPart = (type: string) => parts.find((p) => p.type === type)?.value;
-      const year = getPart("year") ?? "0000";
-      const month = getPart("month") ?? "01";
-      const day = getPart("day") ?? "01";
-      const hour = getPart("hour") ?? "00";
-      const minute = getPart("minute") ?? "00";
-
-      // Treat midnight as \"no specific time\"; in that case, just open a date-only template.
-      const isMidnight = hour === "00" && minute === "00";
-
-      let datesParam = "";
-      if (!isMidnight) {
-        const startLocal = `${year}${month}${day}T${hour}${minute}00`;
-        // Assume 1 hour duration.
-        const startEt = new Date(
-          Number(year),
-          Number(month) - 1,
-          Number(day),
-          Number(hour),
-          Number(minute),
-          0,
-        );
-        const endEt = new Date(startEt.getTime() + 60 * 60 * 1000);
-        const endParts = new Intl.DateTimeFormat("en-US", {
-          timeZone: "America/New_York",
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        }).formatToParts(endEt);
-        const endYear = endParts.find((p) => p.type === "year")?.value ?? year;
-        const endMonth = endParts.find((p) => p.type === "month")?.value ?? month;
-        const endDay = endParts.find((p) => p.type === "day")?.value ?? day;
-        const endHour = endParts.find((p) => p.type === "hour")?.value ?? hour;
-        const endMinute = endParts.find((p) => p.type === "minute")?.value ?? minute;
-        const endLocal = `${endYear}${endMonth}${endDay}T${endHour}${endMinute}00`;
-        datesParam = `${startLocal}/${endLocal}`;
-      }
-
-      const calUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
-        event.name,
-      )}${
-        datesParam ? `&dates=${datesParam}` : ""
-      }&details=${encodeURIComponent(event.description || "")}&location=${encodeURIComponent(
-        event.meetingUrl || "",
-      )}`;
-    window.open(calUrl, "_blank");
-    } catch {
+    // Literal parsing of the same raw string used for display.
+    const [datePartRaw, timePartRaw] = event.date.split(/[T ]/);
+    if (!datePartRaw || !timePartRaw) {
       const fallbackUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
         event.name,
       )}&details=${encodeURIComponent(event.description || "")}&location=${encodeURIComponent(
         event.meetingUrl || "",
       )}`;
       window.open(fallbackUrl, "_blank");
+      return;
     }
+
+    const [yearStr, monthStr, dayStr] = datePartRaw.split("-");
+    const [hStr, mStr] = timePartRaw.replace(/Z$/, "").split(":").slice(0, 2);
+    const year = Number(yearStr);
+    const month = Number(monthStr);
+    const day = Number(dayStr);
+    const hour = Number(hStr);
+    const minute = Number(mStr);
+
+    if (
+      !Number.isFinite(year) ||
+      !Number.isFinite(month) ||
+      !Number.isFinite(day) ||
+      !Number.isFinite(hour) ||
+      !Number.isFinite(minute)
+    ) {
+      const fallbackUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+        event.name,
+      )}&details=${encodeURIComponent(event.description || "")}&location=${encodeURIComponent(
+        event.meetingUrl || "",
+      )}`;
+      window.open(fallbackUrl, "_blank");
+      return;
+    }
+
+    const yStr = String(year).padStart(4, "0");
+    const mStrPadded = String(month).padStart(2, "0");
+    const dStrPadded = String(day).padStart(2, "0");
+    const hhStr = String(hour).padStart(2, "0");
+    const mmStr = String(minute).padStart(2, "0");
+
+    const startLocal = `${yStr}${mStrPadded}${dStrPadded}T${hhStr}${mmStr}00`;
+    // Assume 1-hour duration without timezone math, staying on the same day.
+    const endHour = Math.min(hour + 1, 23);
+    const endHhStr = String(endHour).padStart(2, "0");
+    const endLocal = `${yStr}${mStrPadded}${dStrPadded}T${endHhStr}${mmStr}00`;
+
+    const datesParam = `${startLocal}/${endLocal}`;
+
+    const calUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+      event.name,
+    )}&dates=${datesParam}&details=${encodeURIComponent(event.description || "")}&location=${encodeURIComponent(
+      event.meetingUrl || "",
+    )}`;
+    window.open(calUrl, "_blank");
   }
 
   return (
@@ -130,7 +167,7 @@ export function EventModal({ event, open, onOpenChange }: EventModalProps) {
         <DialogHeader>
           <DialogTitle>{event.name}</DialogTitle>
           <DialogDescription className="flex items-center gap-2">
-            {dateLabel && <span className="text-foreground">{dateLabel}</span>}
+            <span className="text-slate-200">{dateLabel}</span>
             <span className="inline-flex items-center gap-1 rounded-md bg-muted/50 px-2 py-0.5 text-xs">
               <Video className="size-3" />
               Virtual
