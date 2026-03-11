@@ -9,9 +9,12 @@ export type EventRecord = {
 
 export function getEventDateKey(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  const [datePart] = raw.split("T");
-  if (!datePart || !/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return null;
-  return datePart;
+  // Brute-force date normalization: take the first 10 characters (YYYY-MM-DD)
+  // from the raw Monday date string or ISO string. This avoids timezone
+  // shifts when matching events to calendar days.
+  const key = raw.substring(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return null;
+  return key;
 }
 
 type FormatOptions = {
@@ -22,46 +25,38 @@ export function formatEventDateTime(
   raw: string | null | undefined,
   { includeWeekday = true }: FormatOptions = {},
 ): string | null {
-  const dateKey = getEventDateKey(raw);
-  if (!dateKey) return null;
+  if (!raw) return null;
 
-  const [yearStr, monthStr, dayStr] = dateKey.split("-");
-  const year = Number(yearStr);
-  const monthIndex = Number(monthStr) - 1;
-  const day = Number(dayStr);
+  try {
+    const iso = raw.includes("T") && /Z$/.test(raw) ? raw : `${raw}Z`.replace(/ZZ$/, "Z");
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return null;
 
-  if (!Number.isFinite(year) || !Number.isFinite(monthIndex) || !Number.isFinite(day)) {
-    return null;
-  }
+    const dateFormatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York",
+      weekday: includeWeekday ? "long" : undefined,
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
 
-  const baseDate = new Date(year, monthIndex, day);
-
-  const dateLabel = baseDate.toLocaleDateString("en-US", {
-    weekday: includeWeekday ? "long" : undefined,
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-
-  const timePartFull = raw?.split("T")[1] ?? "";
-  const timeToken = timePartFull.split(/[Z+.-]/)[0] || "";
-  const hhmm = timeToken.slice(0, 5); // HH:MM
-
-  let timeLabel: string;
-  if (!hhmm || hhmm === "00:00") {
-    timeLabel = "Time TBD";
-  } else {
-    const [hStr, mStr] = hhmm.split(":");
-    const hour = Number(hStr);
-    const minute = Number(mStr);
-    const timeDate = new Date(year, monthIndex, day, hour, minute);
-    const localized = timeDate.toLocaleTimeString("en-US", {
+    const timeFormatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York",
       hour: "numeric",
       minute: "2-digit",
     });
-    timeLabel = `${localized} ET`;
-  }
 
-  return `${dateLabel} • ${timeLabel}`;
+    const dateLabel = dateFormatter.format(date);
+
+    // Treat midnight (00:00) as \"no specific time\" / TBD.
+    const isMidnightUtc = date.getUTCHours() === 0 && date.getUTCMinutes() === 0;
+    const hasExplicitTime = !isMidnightUtc;
+
+    const timeLabel = hasExplicitTime ? `${timeFormatter.format(date)} ET` : "Time TBD";
+
+    return `${dateLabel} • ${timeLabel}`;
+  } catch {
+    return null;
+  }
 }
 

@@ -40,7 +40,7 @@ export function MonthlyCalendar({ dates, events = [], onDateClick, compact, clas
     return set;
   }, [dates]);
 
-  const todayKey = toDateKey(today);
+  const todayKey = getEventDateKey(new Date().toISOString()) ?? toDateKey(today);
   const eventsByDateKey = useMemo(() => {
     const map = new Map<string, EventRecord[]>();
     for (const e of events) {
@@ -63,7 +63,7 @@ export function MonthlyCalendar({ dates, events = [], onDateClick, compact, clas
 
     const addDay = (date: Date, isCurrentMonth: boolean) => {
       const iso = new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString();
-      const dateKey = toDateKey(date);
+      const dateKey = getEventDateKey(date.toISOString()) ?? toDateKey(date);
       const meetingEvents = eventsByDateKey.get(dateKey) ?? [];
       days.push({
         date,

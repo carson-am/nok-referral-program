@@ -42,11 +42,14 @@ function parseDateValue(cv: MondayColumnValue | undefined): string | null {
   if (!cv?.value) return null;
   try {
     const v = JSON.parse(cv.value) as { date?: string; time?: string };
-    if (v?.date) {
-      const time = v?.time ?? "00:00";
-      return `${v.date}T${time}:00`;
+    if (!v?.date) {
+      return null;
     }
-    return null;
+
+    const time = v.time ?? "00:00";
+    // Store as canonical UTC ISO string. Monday times are returned in UTC,
+    // so we append a Z suffix to make this explicit for downstream consumers.
+    return `${v.date}T${time}:00Z`;
   } catch {
     return cv.text ?? null;
   }
