@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { EventRecord } from "@/lib/events";
+import { formatEventDateTime, getEventDateKey } from "@/lib/events";
 
 export default function MeetingArchivePage() {
   const [events, setEvents] = useState<EventRecord[]>([]);
@@ -25,18 +26,16 @@ export default function MeetingArchivePage() {
     })();
   }, []);
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+  const todayKey = getEventDateKey(new Date().toISOString());
   const pastEvents = events.filter((e) => {
-    if (!e.date) return false;
-    const d = new Date(e.date);
-    d.setHours(0, 0, 0, 0);
-    return d < todayStart;
+    if (!todayKey) return false;
+    const key = getEventDateKey(e.date);
+    return !!key && key < todayKey;
   });
   pastEvents.sort((a, b) => {
-    const da = a.date ? new Date(a.date).getTime() : 0;
-    const db = b.date ? new Date(b.date).getTime() : 0;
-    return db - da;
+    const ak = getEventDateKey(a.date) ?? "";
+    const bk = getEventDateKey(b.date) ?? "";
+    return bk.localeCompare(ak);
   });
 
   return (
@@ -57,15 +56,9 @@ export default function MeetingArchivePage() {
       ) : (
         <div className="flex flex-col gap-4">
           {pastEvents.map((event) => {
-            const dateLabel = event.date
-              ? new Date(event.date).toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                })
-              : null;
+            const dateLabel = formatEventDateTime(event.date, {
+              includeWeekday: false,
+            });
             return (
               <Card
                 key={event.id}

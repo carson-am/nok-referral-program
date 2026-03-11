@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { EventRecord } from "@/lib/events";
+import { formatEventDateTime } from "@/lib/events";
 
 type EventModalProps = {
   event: EventRecord | null;
@@ -22,16 +23,7 @@ type EventModalProps = {
 export function EventModal({ event, open, onOpenChange }: EventModalProps) {
   if (!event) return null;
 
-  const dateLabel = event.date
-    ? new Date(event.date).toLocaleString("en-US", {
-        weekday: "short",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      })
-    : null;
+  const dateLabel = formatEventDateTime(event.date, { includeWeekday: true });
 
   function handleAddToCalendar() {
     if (!event || !event.meetingUrl) return;

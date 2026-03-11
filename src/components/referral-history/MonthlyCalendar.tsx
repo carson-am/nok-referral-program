@@ -2,6 +2,7 @@ import { useMemo } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { EventRecord } from "@/lib/events";
+import { getEventDateKey } from "@/lib/events";
 import { cn } from "@/lib/utils";
 
 type MonthlyCalendarProps = {
@@ -43,8 +44,8 @@ export function MonthlyCalendar({ dates, events = [], onDateClick, compact, clas
   const eventsByDateKey = useMemo(() => {
     const map = new Map<string, EventRecord[]>();
     for (const e of events) {
-      if (!e.date) continue;
-      const key = toDateKey(new Date(e.date));
+      const key = getEventDateKey(e.date);
+      if (!key) continue;
       if (key < todayKey) continue;
       const list = map.get(key) ?? [];
       list.push(e);
